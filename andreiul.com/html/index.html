@@ -1,16 +1,80 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
-    <title>Dad Joke Generator</title>
-        <link rel="stylesheet" type="text/css" href="dadjoke.css">
-    <script src="script.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dad Joke Generator - Generate Funny Dad Jokes!</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap">
+    <link rel="stylesheet" href="dadjoke.css">
   </head>
- <body onload="showDadJoke()">
+  <body>
     <header>
-      <h1>Dad Joke Generator</h1>
+      <nav class="navbar">
+        <div class="navbar-brand">
+          <a href="#" class="navbar-item">
+            <img src="logo.png" alt="Dad Joke Generator Logo">
+            <h1 class="title">Dad Joke Generator</h1>
+          </a>
+        </div>
+        <div class="navbar-menu">
+          <div class="navbar-end">
+            <a href="#" class="navbar-item">About</a>
+            <a href="#" class="navbar-item">Contact</a>
+          </div>
+        </div>
+      </nav>
     </header>
     <main>
-    <div id="joke"></div>
+      <section class="section">
+        <div class="container">
+          <div class="columns is-centered">
+            <div class="column is-half">
+              <div class="box">
+                <div class="field">
+                  <label class="label" for="category-select">Select a Category:</label>
+                  <div class="control">
+                    <div class="select">
+                      <select id="category-select">
+                        <option value="any">Any</option>
+                        <option value="programming">Programming</option>
+                        <option value="general">General</option>
+                        <option value="knock-knock">Knock-Knock</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+                <div class="field">
+                  <label class="label" for="type-select">Select a Type:</label>
+                  <div class="control">
+                    <div class="select">
+                      <select id="type-select">
+                        <option value="random">Random</option>
+                        <option value="single">Single</option>
+                        <option value="twopart">Two-Part</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+                <div class="field">
+                  <div class="control">
+                    <button id="generate-joke-btn" class="button is-primary">Generate Joke</button>
+                  </div>
+                </div>
+                <div id="joke-container"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
     </main>
+    <footer class="footer">
+      <div class="content has-text-centered">
+        <p>
+          Made with ❤️ by Dad Joke Generator Team
+        </p>
+      </div>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="script.js"></script>
   </body>
 </html>
