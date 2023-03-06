@@ -18,29 +18,39 @@ main {
     background-color: #fff;
     box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
 }
-
-#joke {
-  font-size: 1.5em;
-  font-weight: bold;
-  margin-bottom: 1em;
+control{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  background-color: #f2f2f2;
 }
 
-generate-joke-btn {
-  background-color: #4CAF50;
-  color: white;
-  padding: 0.5em 1em;
-  border: none;
-  cursor: pointer;
-  font-size: 1.5em;
-  font-weight: bold;
-  margin-bottom: 1em;
-  text-align: center;
-    position: absolute;
+#joke-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100px;
+  background-color: #f2f2f2;
+}
+field {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  background-color: #f2f2f2;
 }
 
-button:hover {
-  background-color: #3e8e41;
+
+button:generate-joke-btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  background-color: #f2f2f2;
+
 }
+
 
 footer {
   background-color: #4CAF50;
