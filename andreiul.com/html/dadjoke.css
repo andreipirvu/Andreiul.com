@@ -12,8 +12,11 @@ header {
 }
 
 main {
-  padding: 2em;
-  text-align: center;
+    max-width: 600px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #fff;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
 }
 
 #joke {
@@ -22,12 +25,17 @@ main {
   margin-bottom: 1em;
 }
 
-button {
+generate-joke-btn {
   background-color: #4CAF50;
   color: white;
   padding: 0.5em 1em;
   border: none;
   cursor: pointer;
+  font-size: 1.5em;
+  font-weight: bold;
+  margin-bottom: 1em;
+  text-align: center;
+    position: absolute;
 }
 
 button:hover {
@@ -42,4 +50,24 @@ footer {
   position: absolute;
   bottom: 0;
   width: 100%;
+}
+h1 {
+    margin: 0;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+}
+
+label {
+    margin-bottom: 10px;
+}
+
+input,
+textarea {
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
 }
