@@ -1,38 +1,52 @@
 # Deploy nginx pentru www.andreiul.com
 
-Configurația din acest folder închide R-04 (versiunea expusă) și R-05 (headere de securitate).
-Serverul rulează acum nginx 1.18 pe Ubuntu 20.04 și nu trimite niciun header de securitate.
+Serverul (Contabo, Ubuntu 22.04, nginx 1.18) găzduiește trei site-uri:
 
-## Înainte de deploy
+| Site | Fișier pe server | Atins de acest folder? |
+|------|------------------|------------------------|
+| `andreiul.com`, `www.andreiul.com` | `/etc/nginx/sites-available/andreiul` (primul bloc) | Da: headere de securitate și CSP |
+| `jobs.andreiul.com` (NexusJobs) | același fișier, al doilea bloc | Nu: copiat neschimbat |
+| `birds.andreiul.com` | `/etc/nginx/sites-available/birds` | Nu |
 
-Compară cu configurația actuală de pe server și ajustează dacă diferă:
+| Fișier din repo | Unde merge pe server | Ce face |
+|-----------------|---------------------|---------|
+| `conf.d/security.conf` | `/etc/nginx/conf.d/security.conf` | `server_tokens off` pentru toate site-urile (R-04). E deja instalat. |
+| `snippets/security-headers.conf` | `/etc/nginx/snippets/security-headers.conf` | HSTS, nosniff, X-Frame-Options etc. (R-05) |
+| `sites-available/andreiul` | `/etc/nginx/sites-available/andreiul` | Fișierul complet, cu CSP pe pagină și blocarea `/nexusjobs/` (R-05, R-08) |
+
+## Testare înainte de deploy
+
+`bash deploy/nginx/test-config.sh` reproduce structura de pe server (inclusiv site-ul birds)
+și rulează `nginx -t`. CI-ul îl rulează la fiecare pull request.
+
+## Instalare (pe server, ca root)
+
+Din folderul repo-ului clonat pe server, sau după ce copiezi cele două fișiere cu `scp`:
 
 ```bash
-sudo nginx -T | less                  # configurația activă completă
-ls /etc/letsencrypt/live/             # numele certificatului
+# 1. backup
+cp /etc/nginx/sites-available/andreiul /root/andreiul.nginx.$(date +%F-%H%M).bak
+
+# 2. verifică dacă fișierul de pe server s-a schimbat față de ce e în repo (afară de
+#    blocul andreiul.com). Diferențele așteptate sunt doar în primul bloc server.
+diff /etc/nginx/sites-available/andreiul deploy/nginx/sites-available/andreiul
+
+# 3. instalare și test
+cp deploy/nginx/snippets/security-headers.conf /etc/nginx/snippets/
+cp deploy/nginx/sites-available/andreiul /etc/nginx/sites-available/andreiul
+nginx -t && systemctl reload nginx
 ```
 
-Configurația presupune:
-- fișierele site-ului în `/var/www/andreiul.com` (conținutul folderului `site/`);
-- certificatul certbot în `/etc/letsencrypt/live/andreiul.com/`;
-- `www.andreiul.com` ca adresă canonică (`andreiul.com` face redirect).
-
-## Instalare
-
-```bash
-sudo cp snippets/security-headers.conf /etc/nginx/snippets/
-sudo cp /etc/nginx/sites-available/andreiul.com /etc/nginx/sites-available/andreiul.com.bak   # backup
-sudo cp andreiul.com.conf /etc/nginx/sites-available/andreiul.com
-sudo nginx -t && sudo systemctl reload nginx
-```
-
-Dacă `nginx -t` dă eroare, nu reîncărca: repune backup-ul și trimite-mi mesajul.
+Dacă `nginx -t` dă eroare, nu reîncărca. Pune backup-ul înapoi:
+`cp /root/andreiul.nginx.<data>.bak /etc/nginx/sites-available/andreiul`.
 
 Copiază și `site/.well-known/security.txt` în `/var/www/andreiul.com/.well-known/`.
 
 ## Verificare
 
 ```bash
+for u in https://www.andreiul.com/ https://andreiul.com/ https://jobs.andreiul.com/ https://birds.andreiul.com/; do
+  curl -s -o /dev/null -w "%{http_code}  $u\n" "$u"; done
 bash scripts/check-live-headers.sh https://www.andreiul.com
 ```
 
@@ -41,19 +55,13 @@ Sau din GitHub: Actions → site-monitor → Run workflow.
 Deschide apoi fiecare pagină în browser cu DevTools → Console deschis. Un mesaj
 „Refused to load …” înseamnă că CSP-ul blochează ceva de care pagina are nevoie.
 
+## Certbot
+
+Liniile marcate `# managed by Certbot` sunt identice cu cele de pe server. Reînnoirea
+automată (`certbot renew`) nu rescrie fișierul, deci modificările rămân.
+Dacă rulezi din nou `certbot --nginx` pentru un domeniu nou, verifică după aceea cu `diff`.
+
 ## HSTS
 
-`max-age` e setat la un an. După ce site-ul merge fără probleme câteva săptămâni pe HTTPS,
-poți adăuga `; preload` și înscrie domeniul pe hstspreload.org. Înscrierea e greu de anulat,
-așa că nu te grăbi.
-
-## Upgrade Ubuntu 20.04 → 24.04
-
-Ubuntu 20.04 nu mai primește actualizări standard. Pașii, după un backup sau snapshot:
-
-```bash
-sudo apt update && sudo apt full-upgrade
-sudo do-release-upgrade          # 20.04 → 22.04, apoi rulează din nou pentru 24.04
-```
-
-Configurația folosește `listen 443 ssl http2`, care merge pe nginx 1.18 și 1.24.
+`max-age` e de un an, fără `includeSubDomains`, ca să nu impună HTTPS pe subdomenii
+viitoare. După câteva săptămâni fără probleme poți adăuga `includeSubDomains`.
