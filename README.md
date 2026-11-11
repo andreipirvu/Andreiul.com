@@ -15,7 +15,24 @@ Software Product Owner în securitatea cibernetică pentru automotive.
 | `site/CV_Pirvu_Andrei.pdf` | CV-ul descărcabil |
 
 Site-ul e static (HTML, CSS și JavaScript, fără build) și e servit de nginx.
-Conținutul din `site/` este identic cu versiunea live din 11 noiembrie 2026.
+
+## Securitate
+
+Controalele sunt adaptate după [secops-demo](https://github.com/cybrd0ne/secops-demo).
+Fiecare răspunde unui risc din [`RISK-REGISTER.md`](RISK-REGISTER.md).
+
+| Ce | Unde |
+|----|------|
+| Scanare de secrete (gitleaks) la commit și în CI | `.pre-commit-config.yaml`, `.github/workflows/ci.yml` |
+| Subresource Integrity pe scripturile de pe CDN | `site/app.html`, `scripts/check_sri.py` |
+| Configurație nginx cu CSP pe pagină, HSTS, fără versiune expusă | `deploy/nginx/` |
+| Monitorizare săptămânală a headerelor live | `.github/workflows/site-monitor.yml` |
+| Doar pull request-uri pe `main` | `.github/workflows/governance.yml` |
+| Acțiuni GitHub fixate pe SHA, actualizate de Dependabot | `.github/` |
+| Protecția fișierelor secrete pentru Claude Code | `.claude/` |
+| Raportarea vulnerabilităților | `SECURITY.md`, `site/.well-known/security.txt` |
+
+Pentru lucru local: `pip install pre-commit && pre-commit install`.
 
 ## Istoric
 

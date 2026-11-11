@@ -1,0 +1,26 @@
+# Fails when a commit lands on main without a merged pull request (R-01).
+# This detects after the fact; the branch ruleset (see SECURITY.md) is what prevents it.
+name: governance
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  pr-only:
+    runs-on: ubuntu-latest
+    steps:
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+        run: |
+          n=$(gh api "repos/$REPO/commits/$SHA/pulls" --jq '[.[] | select(.merged_at != null)] | length')
+          if [ "$n" -eq 0 ]; then
+            echo "::error::$SHA reached main without a merged pull request (R-01)"
+            exit 1
+          fi
+          echo "OK: $SHA arrived through a merged pull request"

@@ -1,0 +1,32 @@
+# Local guardrails, run on every commit (R-01, R-02, R-03).
+# Install once per clone:  pip install pre-commit && pre-commit install
+# CI runs gitleaks again, because a local hook can be skipped with --no-verify.
+repos:
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.1
+    hooks:
+      - id: gitleaks
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: detect-private-key
+      - id: check-added-large-files
+        args: [--maxkb=1024]
+      - id: check-merge-conflict
+      - id: check-yaml
+      - id: no-commit-to-branch
+        args: [--branch, main]
+      # Whitespace fixers stay out of site/ so the served files are not rewritten.
+      - id: end-of-file-fixer
+        exclude: ^site/
+      - id: trailing-whitespace
+        exclude: ^site/
+
+  - repo: local
+    hooks:
+      - id: check-sri
+        name: third-party scripts pinned with SRI
+        entry: python scripts/check_sri.py
+        language: system
+        files: ^site/.*\.html$

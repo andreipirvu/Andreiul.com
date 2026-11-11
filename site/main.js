@@ -1,6 +1,12 @@
 // Mobile menu toggle
 const navLinks = document.querySelector('.nav-links');
 const menuToggle = document.querySelector('.menu-toggle');
+menuToggle.addEventListener('click', () => navLinks.classList.toggle('open'));
+
+// Expand/collapse experience cards (was inline onclick; moved here so CSP can forbid inline scripts)
+document.querySelectorAll('.company-header').forEach(header => {
+  header.addEventListener('click', () => header.parentElement.classList.toggle('open'));
+});
 
 // Close menu on link click
 document.querySelectorAll('.nav-links a').forEach(a => {
