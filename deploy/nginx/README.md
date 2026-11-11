@@ -55,6 +55,18 @@ Sau din GitHub: Actions → site-monitor → Run workflow.
 Deschide apoi fiecare pagină în browser cu DevTools → Console deschis. Un mesaj
 „Refused to load …” înseamnă că CSP-ul blochează ceva de care pagina are nevoie.
 
+## Actualizarea fișierelor site-ului
+
+```bash
+scp site/index.html site/main.js site/styles.css root@184.174.33.216:/tmp/   # din Git Bash
+# pe server:
+mkdir -p /root/site-backup && cp /var/www/andreiul.com/{index.html,main.js,styles.css} /root/site-backup/
+cp /tmp/index.html /tmp/main.js /tmp/styles.css /var/www/andreiul.com/
+```
+
+Când se schimbă `main.js` sau `styles.css`, crește numărul din `index.html` (`main.js?v=2`), ca
+browserele vizitatorilor să nu folosească o copie veche din cache.
+
 ## Certbot
 
 Liniile marcate `# managed by Certbot` sunt identice cu cele de pe server. Reînnoirea

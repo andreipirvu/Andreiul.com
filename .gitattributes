@@ -1,0 +1,7 @@
+# Everything that goes to the Linux server keeps Unix line endings, also when the
+# repository is checked out on Windows (CRLF in nginx or shell files breaks things).
+* text=auto eol=lf
+*.pdf binary
+*.png binary
+*.jpg binary
+*.ico binary
