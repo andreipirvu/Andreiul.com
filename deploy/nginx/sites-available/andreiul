@@ -1,0 +1,116 @@
+# /etc/nginx/sites-available/andreiul  (enabled via sites-enabled/andreiul)
+#
+# Mirrors the live server file as of 2026-11-11, with security changes only in the
+# andreiul.com / www block (R-05, R-08). The jobs.andreiul.com blocks and the
+# certbot-managed lines are unchanged. birds.andreiul.com lives in its own file and is
+# not touched. server_tokens is set once, globally, in conf.d/security.conf.
+
+server {
+    server_name andreiul.com www.andreiul.com;
+    root /var/www/andreiul.com;
+    index index.html;
+
+    # NexusJobs sits inside this webroot. jobs.andreiul.com serves it through its own
+    # root and alias, so nothing under /nexusjobs/ may be served from here (R-08).
+    location ^~ /nexusjobs/ { return 404; }
+
+    # No dotfiles (.git, .env, editor backups), except /.well-known/.
+    location ~ /\.(?!well-known/) { return 404; }
+
+    location = /.well-known/security.txt {
+        include snippets/security-headers.conf;
+        default_type text/plain;
+        charset utf-8;
+    }
+
+    # Content-Security-Policy per page: each page gets the narrowest policy that lets it run.
+    # nginx drops inherited add_header lines in any location that sets its own, so every
+    # location below includes the common headers again.
+
+    # SnipLearn: React and Babel from cdnjs (pinned with SRI). Babel compiles JSX in the
+    # browser, which needs 'unsafe-eval' and 'unsafe-inline'.
+    location = /app.html {
+        include snippets/security-headers.conf;
+        add_header Content-Security-Policy "default-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'" always;
+    }
+
+    # Weather Cipher and Uni Calendar: inline <script> and onclick handlers.
+    location ~ ^/(crypto|calendaruni)\.html$ {
+        include snippets/security-headers.conf;
+        add_header Content-Security-Policy "default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'" always;
+    }
+
+    # Main page and everything else (CSS, JS, CV): no inline script at all.
+    location / {
+        include snippets/security-headers.conf;
+        add_header Content-Security-Policy "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'" always;
+        try_files $uri $uri/ =404;
+    }
+
+    listen 443 ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/andreiul.com/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/andreiul.com/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+}
+
+# ── jobs.andreiul.com (NexusJobs): unchanged ─────────────────────────────────────
+server {
+    server_name jobs.andreiul.com;
+    root /var/www/andreiul.com/nexusjobs/frontend/dist;
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    location /api/ {
+        proxy_pass http://localhost:5000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_cache_bypass $http_upgrade;
+        proxy_read_timeout 60s;
+    }
+
+    location /uploads/ {
+        alias /var/www/andreiul.com/nexusjobs/backend/uploads/;
+        expires 30d;
+    }
+
+    client_max_body_size 10M;
+
+    listen 443 ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/andreiul.com/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/andreiul.com/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+}
+
+# ── HTTP → HTTPS redirects (certbot): unchanged ──────────────────────────────────
+server {
+    if ($host = www.andreiul.com) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+    if ($host = andreiul.com) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+    listen 80;
+    server_name andreiul.com www.andreiul.com;
+    return 404; # managed by Certbot
+}
+
+server {
+    if ($host = jobs.andreiul.com) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+    listen 80;
+    server_name jobs.andreiul.com;
+    return 404; # managed by Certbot
+}

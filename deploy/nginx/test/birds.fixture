@@ -1,0 +1,31 @@
+# Copy of /etc/nginx/sites-available/birds from the live server (2026-11-11),
+# used only by test-config.sh to catch conflicts with the andreiul file.
+server {
+    server_name birds.andreiul.com;
+    root /var/www/birds;
+    index index.html;
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+    location /assets/ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+    gzip on;
+    gzip_types text/css application/javascript application/json image/svg+xml;
+    listen [::]:443 ssl ipv6only=on; # managed by Certbot
+    listen 443 ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/birds.andreiul.com/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/birds.andreiul.com/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+}
+server {
+    if ($host = birds.andreiul.com) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+    listen 80;
+    listen [::]:80;
+    server_name birds.andreiul.com;
+    return 404; # managed by Certbot
+}

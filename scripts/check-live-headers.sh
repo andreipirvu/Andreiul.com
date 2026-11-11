@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Check the live site for the controls in RISK-REGISTER.md (R-04, R-05, R-06).
+# Check the live site for the controls in RISK-REGISTER.md (R-04, R-05, R-06, R-08).
 # Exit 1 if any check fails. Usage: scripts/check-live-headers.sh [https://www.andreiul.com]
 set -uo pipefail
 
@@ -44,7 +44,7 @@ case "$code" in
 esac
 
 # Sensitive paths must not be served.
-for p in /.git/HEAD /.git/config /.env /.DS_Store; do
+for p in /.git/HEAD /.git/config /.env /.DS_Store /nexusjobs/backend/.env /nexusjobs/backend/package.json; do
   c="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 20 "$base$p")"
   if [ "$c" = "200" ]; then bad "$p is served (200)"; else ok "$p not served ($c)"; fi
 done
