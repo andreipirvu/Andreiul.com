@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calendar Zilnic 2026 — Master & Management</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Jost:wght@300;400;500;600&display=swap');
+
+:root {
+  --bg: #f5f0e8;
+  --paper: #fafafa;
+  --ink: #1c1a16;
+  --muted: #8a8070;
+  --line: #d8d0c0;
+
+  /* Master = albastru pastel */
+  --master-c: #2a5298;
+  --master-bg: #dde8f8;
+  --master-border: #6a9fd8;
+
+  /* Facultate cursuri = teal/turcoaz pastel */
+  --faculty-c: #1a6a6a;
+  --faculty-bg: #d0f0f0;
+  --faculty-border: #60b8b8;
+
+  /* Examene Master = rosu pastel inchis */
+  --exam-master-c: #b03a3a;
+  --exam-master-bg: #fadadd;
+  --exam-master-border: #e08888;
+
+  /* Examene Facultate = rosu pastel deschis */
+  --exam-c: #c0605a;
+  --exam-bg: #fdecea;
+  --exam-border: #f0aaaa;
+
+  /* Ambele / overlap */
+  --both-c: #5a4a00;
+  --both-bg: #fff5cc;
+  --both-border: #d4aa40;
+
+  /* Vacanta = verde pastel */
+  --vacanta-c: #2e7d52;
+  --vacanta-bg: #d6f0e0;
+  --vacanta-border: #80c9a0;
+
+  /* Zi libera = alb/neutral */
+  --free-c: #888070;
+  --free-bg: #f5f5f0;
+
+  --weekend: #f2ede4;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Jost', sans-serif;
+  font-weight: 300;
+  min-height: 100vh;
+}
+
+/* Texture overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+}
+
+.wrap { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 40px 24px 80px; }
+
+header {
+  text-align: center;
+  margin-bottom: 48px;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 32px;
+}
+
+header h1 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(2rem, 5vw, 3.4rem);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  line-height: 1.1;
+}
+
+header h1 em {
+  font-style: italic;
+  color: var(--muted);
+}
+
+header p {
+  margin-top: 8px;
+  font-size: 0.82rem;
+  color: var(--muted);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* Legend */
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 40px;
+  justify-content: center;
+}
+
+.leg {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  border-radius: 2px;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: 1px solid;
+}
+
+.leg-master      { background: var(--master-bg);      color: var(--master-c);      border-color: var(--master-border); }
+.leg-faculty     { background: var(--faculty-bg);     color: var(--faculty-c);     border-color: var(--faculty-border); }
+.leg-exam        { background: var(--exam-bg);         color: var(--exam-c);         border-color: var(--exam-border); }
+.leg-exam-master { background: var(--exam-master-bg); color: var(--exam-master-c); border-color: var(--exam-master-border); }
+.leg-both        { background: var(--both-bg);         color: var(--both-c);         border-color: var(--both-border); }
+.leg-vacanta     { background: var(--vacanta-bg);      color: var(--vacanta-c);      border-color: var(--vacanta-border); }
+.leg-free        { background: var(--free-bg);         color: var(--free-c);         border-color: #ccc8be; }
+
+/* Month nav */
+.month-nav {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+  margin-bottom: 40px;
+  flex-wrap: wrap;
+}
+
+.month-btn {
+  padding: 7px 18px;
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--muted);
+  font-family: 'Jost', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.15s;
+}
+
+.month-btn:hover { border-color: var(--ink); color: var(--ink); }
+.month-btn.active { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+
+/* Month block */
+.month-block { display: none; margin-bottom: 48px; }
+.month-block.visible { display: block; }
+
+.month-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 2rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin-bottom: 4px;
+  color: var(--ink);
+}
+
+.month-subtitle {
+  font-size: 0.75rem;
+  color: var(--muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+
+/* Week grid */
+.week-grid-header {
+  display: grid;
+  grid-template-columns: 44px repeat(7, 1fr);
+  gap: 2px;
+  margin-bottom: 4px;
+}
+
+.week-grid-header .wh {
+  text-align: center;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 4px 0;
+}
+
+.wh.weekend-h { color: #b0a898; }
+
+/* Calendar grid */
+.cal-grid {
+  display: grid;
+  grid-template-columns: 44px repeat(7, 1fr);
+  gap: 2px;
+}
+
+.week-num {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 8px;
+  font-size: 0.6rem;
+  color: #c0b8a8;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+}
+
+.day-cell {
+  min-height: 90px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  padding: 6px 7px 6px;
+  position: relative;
+  transition: box-shadow 0.15s;
+}
+
+.day-cell:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.08); z-index: 1; }
+
+.day-cell.empty { background: transparent; border-color: transparent; min-height: 90px; }
+
+.day-cell.weekend { background: var(--weekend); }
+
+.day-cell.today { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+
+.day-num {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted);
+  margin-bottom: 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.day-num .dow {
+  font-size: 0.6rem;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* Events in cells */
+.ev {
+  font-size: 0.67rem;
+  line-height: 1.35;
+  padding: 3px 5px;
+  border-radius: 2px;
+  margin-bottom: 2px;
+  border-left: 2px solid;
+  font-weight: 400;
+}
+
+.ev-master { background: var(--master-bg); color: var(--master-c); border-left-color: var(--master-border); }
+.ev-faculty { background: var(--faculty-bg); color: var(--faculty-c); border-left-color: var(--faculty-border); }
+.ev-exam { background: var(--exam-bg); color: var(--exam-c); border-left-color: var(--exam-border); }
+.ev-exam-master { background: var(--exam-master-bg); color: var(--exam-master-c); border-left-color: var(--exam-master-border); }
+.ev-free { background: var(--free-bg); color: var(--free-c); border-left-color: #ccc8be; }
+.ev-vacanta { background: var(--vacanta-bg); color: var(--vacanta-c); border-left-color: var(--vacanta-border); }
+.ev-both { background: var(--both-bg); color: var(--both-c); border-left-color: var(--both-border); }
+.ev-grey { background: #f0f0ee; color: #888; border-left-color: #ccc; }
+
+.ev strong { font-weight: 600; }
+.ev .time { font-size: 0.6rem; opacity: 0.75; }
+
+/* Free day indicator */
+.free-day { 
+  font-size: 0.6rem;
+  color: #aaa;
+  font-style: italic;
+  margin-top: 4px;
+}
+
+/* Vacation overlay */
+.day-cell.is-vacanta {
+  background: var(--vacanta-bg);
+  border-color: #b0ddd0;
+}
+
+.day-cell.is-vacanta .day-num { color: var(--vacanta-c); }
+
+/* Summary stats */
+.month-stats {
+  display: flex;
+  gap: 16px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+.stat {
+  font-size: 0.72rem;
+  color: var(--muted);
+  padding: 4px 10px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 2px;
+}
+
+.stat strong { color: var(--ink); font-weight: 600; }
+
+/* ── MOBILE: lista zilnica in loc de grid ── */
+@media (max-width: 640px) {
+
+  .wrap { padding: 24px 14px 60px; }
+
+  header h1 { font-size: 1.7rem; }
+  header p { font-size: 0.75rem; }
+
+  .legend { gap: 6px; }
+  .leg { font-size: 0.65rem; padding: 4px 10px; }
+
+  .month-nav { gap: 3px; }
+  .month-btn { padding: 6px 12px; font-size: 0.7rem; }
+
+  .month-title { font-size: 1.5rem; }
+
+  /* Ascunde header-ul grid si week numbers */
+  .week-grid-header { display: none; }
+  .week-num { display: none; }
+
+  /* Transforma grid-ul in lista */
+  .cal-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  /* Ascunde celulele goale */
+  .day-cell.empty { display: none; }
+
+  /* Celulele weekend - compacte */
+  .day-cell.weekend {
+    min-height: 0;
+    padding: 6px 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    opacity: 0.5;
+  }
+
+  .day-cell.weekend .day-num {
+    font-size: 0.72rem;
+    margin-bottom: 0;
+    min-width: 80px;
+  }
+
+  .day-cell.weekend .free-day { display: none; }
+
+  /* Celule normale */
+  .day-cell {
+    min-height: 0;
+    padding: 10px 12px;
+    border-radius: 6px;
+  }
+
+  .day-num {
+    font-size: 0.8rem;
+    margin-bottom: 6px;
+  }
+
+  .day-num .dow {
+    font-size: 0.68rem;
+  }
+
+  .ev {
+    font-size: 0.75rem;
+    padding: 4px 8px;
+    margin-bottom: 3px;
+    line-height: 1.4;
+  }
+
+  .ev .time { font-size: 0.65rem; }
+
+  .free-day { font-size: 0.65rem; }
+
+  .month-stats {
+    gap: 8px;
+  }
+
+  .stat { font-size: 0.68rem; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>Calendar Zilnic <em>2026</em></h1>
+  <p>Master CYBER1_SGR1 · Facultate Management Gr.3 · Martie – Septembrie</p>
+</header>
+
+<div class="legend">
+  <div class="leg leg-master">● Master (18:00–20:25)</div>
+  <div class="leg leg-faculty">● Facultate — curs/seminar</div>
+  <div class="leg leg-faculty">● Facultate — examen</div>
+  <div class="leg leg-exam-master">● Master — examen/restanțe</div>
+  <div class="leg leg-both">● Ambele în aceeași zi</div>
+  <div class="leg leg-vacanta">● Vacanță / Liber</div>
+  <div class="leg leg-free">● Zi liberă (fără cursuri)</div>
+</div>
+
+<div class="month-nav">
+  <button class="month-btn active" onclick="showMonth('mar')">Martie</button>
+  <button class="month-btn" onclick="showMonth('apr')">Aprilie</button>
+  <button class="month-btn" onclick="showMonth('mai')">Mai</button>
+  <button class="month-btn" onclick="showMonth('iun')">Iunie</button>
+  <button class="month-btn" onclick="showMonth('iul')">Iulie</button>
+  
+</div>
+
+<div id="month-mar" class="month-block visible"></div>
+<div id="month-apr" class="month-block"></div>
+<div id="month-mai" class="month-block"></div>
+<div id="month-iun" class="month-block"></div>
+<div id="month-iul" class="month-block"></div>
+
+
+</div>
+
+<script>
+// ─── DATA ───────────────────────────────────────────────────────────────────
+
+// Master schedule: days of week (0=Sun,1=Mon...2=Tue,3=Wed,4=Thu,5=Fri,6=Sat)
+// Active: 02 Mar – 26 Apr (Modul I), then 11 May – 28 Jun (Modul II based on faculty calendar)
+// Note: 10 Apr – 19 Apr = Vacanta Paste
+
+const MASTER_DAYS = [2, 3, 4, 5]; // Marti, Miercuri, Joi, Vineri
+
+// For each master day, what courses:
+// Marti(2): 18:00 Vulnerability (TICLEANU), 19:40 Vulnerability (CANDEA)  
+// Miercuri(3): 18:00 Intelligent systems (BERNASCHI), 19:40 Intelligent systems (BERNASCHI)
+// Joi(4): 18:00 Vulnerability (TICLEANU), 19:40 Vulnerability (CANDEA)
+// Vineri(5): 18:00 Intelligent systems (BERNASCHI), 19:40 Intelligent systems (BERNASCHI)
+
+const MASTER_SCHEDULE = {
+  2: [
+    { time: '18:00–18:45', name: 'Vulnerability analysis', teacher: 'TICLEANU Oana', type: 'C' },
+    { time: '19:40–20:25', name: 'Vulnerability analysis', teacher: 'CANDEA Dan', type: 'S' }
+  ],
+  3: [
+    { time: '18:00–18:45', name: 'Intelligent systems in risk analysis', teacher: 'BERNASCHI Ovidiu', type: 'L' },
+    { time: '19:40–20:25', name: 'Intelligent systems in risk analysis', teacher: 'BERNASCHI Ovidiu', type: 'C' }
+  ],
+  4: [
+    { time: '18:00–18:45', name: 'Vulnerability analysis', teacher: 'TICLEANU Oana', type: 'C' },
+    { time: '19:40–20:25', name: 'Vulnerability analysis', teacher: 'CANDEA Dan', type: 'S' }
+  ],
+  5: [
+    { time: '18:00–18:45', name: 'Intelligent systems in risk analysis', teacher: 'BERNASCHI Ovidiu', type: 'L' },
+    { time: '19:40–20:25', name: 'Intelligent systems in risk analysis', teacher: 'BERNASCHI Ovidiu', type: 'C' }
+  ]
+};
+
+// Master active periods
+function isMasterActive(date) {
+  const d = date;
+  const y = d.getFullYear();
+  const m = d.getMonth() + 1;
+  const day = d.getDate();
+  const dow = d.getDay();
+  if (!MASTER_DAYS.includes(dow)) return false;
+  
+  // Modul I: 02 Mar – 26 Apr, excluding Paste 10–19 Apr
+  const inMod1 = (y===2026 && ((m===3 && day>=2) || (m===4 && day<=26)));
+  const isPaste = (y===2026 && m===4 && day>=10 && day<=19);
+  
+  if (inMod1 && !isPaste) return true;
+  return false;
+}
+
+// Faculty events (Management Gr.3) - specific dates from Excel
+const FACULTY_EVENTS = [
+  // date: YYYY-MM-DD, name, interval, teacher, type (curs/exam/seminar), sala
+  // ── CURSURI ──
+  { date: '2026-03-13', name: 'Managementul desfacerii 2', interval: '18–21', teacher: 'Mesteru Emanuel', type: 'curs' },
+  { date: '2026-03-14', name: 'Managementul desfacerii 2', interval: '12–16', teacher: 'Mesteru Emanuel', type: 'curs' },
+  { date: '2026-03-15', name: 'Lb. Străină Engleză 2', interval: '12–15', teacher: 'Ciocoi-Pop Ana Blanca', type: 'curs' },
+  { date: '2026-03-21', name: 'Managementul IMM-urilor 2', interval: '8–12', teacher: 'Stan Sebastian', type: 'curs' },
+  { date: '2026-03-27', name: 'Finanțele firmei 2', interval: '17–21', teacher: 'Bratian Vasile', type: 'curs' },
+  { date: '2026-03-28', name: 'Managementul IMM-urilor 2', interval: '9–11', teacher: 'Stan Sebastian', type: 'curs' },
+  { date: '2026-04-03', name: 'Managementul investițiilor 2', interval: '17–21', teacher: 'Serban Radu', type: 'curs' },
+  { date: '2026-04-24', name: 'Managementul investițiilor 2', interval: '17–19', teacher: 'Serban Radu', type: 'curs' },
+  { date: '2026-05-09', name: 'Finanțele firmei 2', interval: '9–11', teacher: 'Bratian Vasile', type: 'curs' },
+  { date: '2026-05-15', name: 'Management comparat 2', interval: '17–21', teacher: 'Porancea Andreea Simina', type: 'curs' },
+  { date: '2026-05-16', name: 'Management comparat 2', interval: '10–12', teacher: 'Porancea Andreea Simina', type: 'curs' },
+  // ── EXAMENE SESIUNE (20 Iun – 04 Iul) ──
+  { date: '2026-06-20', name: 'Managementul investițiilor 2', interval: '11:00–12:00', teacher: 'Serban Radu', type: 'exam', sala: 'E21' },
+  { date: '2026-06-20', name: 'Lb. Străină Engleză 2', interval: '15:30–17:00', teacher: 'Ciocoi-Pop Ana Blanca', type: 'exam', sala: 'E11' },
+  { date: '2026-06-21', name: 'Finanțele firmei 2', interval: '08:00–09:30', teacher: 'Bratian Vasile', type: 'exam', sala: 'M203' },
+  { date: '2026-06-26', name: 'Managementul desfacerii 2', interval: '18:30–20:00', teacher: 'Mesteru Emanuel', type: 'exam', sala: 'E41' },
+  { date: '2026-06-27', name: 'Management comparat 2', interval: '08:00–09:30', teacher: 'Porancea Andreea Simina', type: 'exam', sala: 'E11' },
+  { date: '2026-06-28', name: 'Managementul IMM-urilor 2', interval: '09:30–11:00', teacher: 'Stan Sebastian', type: 'exam', sala: 'E21' },
+  { date: '2026-07-04', name: 'Practică de specialitate 2', interval: '09:30', teacher: 'Serban Radu', type: 'exam', sala: 'Classroom' },
+];
+
+// Vacation / special periods
+// Returns array of status objects for a given date (multiple statuses possible)
+function getDayStatuses(date) {
+  const y = date.getFullYear();
+  const m = date.getMonth() + 1;
+  const d = date.getDate();
+  const statuses = [];
+
+  // ── FACULTATE (Management) ──────────────────────────────────────────
+  // Activitate didactica: 02 Mar - 12 Apr
+  // Vacanta Paste Fac: 13-19 Apr
+  // Activitate didactica: 20 Apr - 14 Iun
+  // Sesiune examene Fac: 15 Iun - 05 Iul
+  // Sesiune restante Fac: 06-12 Iul
+  // Vacanta Fac: 13 Iul - 30 Aug + 07-30 Sep
+
+  if (y===2026) {
+    if (m===4 && d>=13 && d<=19) {
+      statuses.push({ key: 'fac-vacanta-paste', label: '🌷 Vacanță Paște (Facultate)', cls: 'ev-vacanta' });
+    } else if ((m===6 && d>=20) || (m===7 && d<=4)) {
+      statuses.push({ key: 'fac-sesiune', label: '📅 Sesiune Examene — Facultate', cls: 'ev-grey' });
+    } else if (m===7 && d>=6 && d<=12) {
+      statuses.push({ key: 'fac-restante', label: '📅 Restanțe — Facultate', cls: 'ev-grey' });
+    } else if ((m===7 && d>=13) || m===8 || (m===9 && d>=7)) {
+      statuses.push({ key: 'fac-vacanta', label: '☀️ Vacanță vară — Facultate', cls: 'ev-vacanta' });
+    }
+  }
+
+  // ── MASTER (Cybersecurity) ──────────────────────────────────────────
+  // Vacanta Paste Master: 10-19 Apr
+  // Sesiune Modul III Master: 27 Apr - 07 Mai
+  // Vacanta 3 zile: 08-10 Mai
+  // Sesiune Modul IV Master: 29 Iun - 08 Iul
+  // Restante Master: 09-15 Iul
+  // Practica: 16 Iul - 02 Aug
+  // Vacanta vara Master: 03 Aug - 30 Aug + 07-30 Sep
+
+  if (y===2026) {
+    if (m===4 && d>=10 && d<=19) {
+      statuses.push({ key: 'master-vacanta-paste', label: '🌷 Vacanță Paște (Master)', cls: 'ev-vacanta' });
+    } else if ((m===4 && d>=27) || (m===5 && d<=7)) {
+      statuses.push({ key: 'master-sesiune-mod3', label: '📝 Sesiune Examene Modul III — Master', cls: 'ev-exam-master' });
+    } else if (m===5 && d>=8 && d<=10) {
+      statuses.push({ key: 'master-vacanta-3zile', label: '🌿 Vacanță 3 zile (Master)', cls: 'ev-vacanta' });
+    } else if ((m===6 && d>=29) || (m===7 && d<=8)) {
+      statuses.push({ key: 'master-sesiune-mod4', label: '📝 Sesiune Examene Modul IV — Master', cls: 'ev-exam-master' });
+    } else if (m===7 && d>=9 && d<=15) {
+      statuses.push({ key: 'master-restante', label: '📋 Restanțe Modul III+IV — Master', cls: 'ev-exam-master' });
+    } else if ((m===7 && d>=16) || (m===8 && d<=2)) {
+      statuses.push({ key: 'master-practica', label: '🔬 Practică 3 săptămâni (Master)', cls: 'ev-faculty' });
+    } else if ((m===8 && d>=3) || (m===9 && d>=7)) {
+      statuses.push({ key: 'master-vacanta', label: '☀️ Vacanță vară — Master', cls: 'ev-vacanta' });
+    }
+  }
+
+  return statuses;
+}
+
+// Legacy wrapper for is-vacanta cell class
+function getDayStatus(date) {
+  const statuses = getDayStatuses(date);
+  const vacKeys = ['fac-vacanta-paste','master-vacanta-paste','fac-vacanta','master-vacanta','master-vacanta-3zile'];
+  if (statuses.some(s => vacKeys.includes(s.key))) return 'vacanta';
+  return statuses.length > 0 ? statuses[0].key : null;
+}
+
+// Unused legacy objects (kept for safety)
+const STATUS_LABELS = {};
+const STATUS_CLASS = {};
+
+// ─── RENDER ──────────────────────────────────────────────────────────────────
+
+const DOW_NAMES = ['Dum', 'Lun', 'Mar', 'Mie', 'Joi', 'Vin', 'Sâm'];
+const DOW_FULL  = ['Duminică', 'Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă'];
+const MONTH_NAMES = ['Ianuarie','Februarie','Martie','Aprilie','Mai','Iunie','Iulie','August','Septembrie','Octombrie','Noiembrie','Decembrie'];
+const MONTH_IDS = ['mar','apr','mai','iun','iul'];
+const MONTH_NUMS = [3,4,5,6,7]; // 1-based
+
+function pad2(n) { return n < 10 ? '0'+n : ''+n; }
+function dateKey(d) { return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate()); }
+
+function getFacultyEvents(date) {
+  const k = dateKey(date);
+  return FACULTY_EVENTS.filter(e => e.date === k);
+}
+
+function renderMonth(monthId, monthNum, year) {
+  const el = document.getElementById('month-' + monthId);
+  const firstDay = new Date(year, monthNum-1, 1);
+  const lastDay = new Date(year, monthNum, 0);
+  const daysInMonth = lastDay.getDate();
+
+  // Start on Monday (adjust: 0=Sun -> 6, others -1)
+  let startDow = firstDay.getDay(); // 0=Sun
+  let offset = startDow === 0 ? 6 : startDow - 1; // weeks start Monday
+
+  const today = new Date();
+  today.setHours(0,0,0,0);
+
+  // Count stats
+  let masterDays=0, facultyDays=0, freeDays=0, vacantaDays=0;
+
+  let html = `
+    <div class="month-title">${MONTH_NAMES[monthNum-1]}</div>
+    <div class="month-subtitle">2026</div>
+    <div class="week-grid-header">
+      <div class="wh"></div>
+      <div class="wh">Luni</div>
+      <div class="wh">Marți</div>
+      <div class="wh">Miercuri</div>
+      <div class="wh">Joi</div>
+      <div class="wh">Vineri</div>
+      <div class="wh weekend-h">Sâmbătă</div>
+      <div class="wh weekend-h">Duminică</div>
+    </div>
+    <div class="cal-grid">
+  `;
+
+  let cellCount = 0;
+  let weekNum = getWeekNumber(firstDay);
+  
+  // Empty cells before first day
+  if (offset > 0) {
+    html += `<div class="week-num">S${weekNum}</div>`;
+    for (let i = 0; i < offset; i++) {
+      html += `<div class="day-cell empty"></div>`;
+      cellCount++;
+    }
+  }
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const date = new Date(year, monthNum-1, d);
+    const dow = date.getDay(); // 0=Sun,1=Mon...6=Sat
+    const isWeekend = dow === 0 || dow === 6;
+    const isToday = date.getTime() === today.getTime();
+
+    // New week row (Mon = dow 1, but we track by grid position)
+    if ((offset + d - 1) % 7 === 0) {
+      const wn = getWeekNumber(date);
+      html += `<div class="week-num">S${wn}</div>`;
+    }
+
+    const dayStatuses = getDayStatuses(date);
+    const facEvents = getFacultyEvents(date);
+    const hasMaster = isMasterActive(date);
+    const isVacanta = dayStatuses.some(s => s.key.includes('vacanta'));
+
+    let classes = 'day-cell';
+    if (isWeekend) classes += ' weekend';
+    if (isToday) classes += ' today';
+    if (isVacanta) classes += ' is-vacanta';
+
+    html += `<div class="${classes}">`;
+    html += `<div class="day-num"><span>${d}</span><span class="dow">${DOW_NAMES[dow]}</span></div>`;
+
+    let hasContent = false;
+
+    // Period status banners - show each institution's status separately
+    if (!isWeekend) {
+      for (const st of dayStatuses) {
+        html += `<div class="ev ${st.cls}"><strong>${st.label}</strong></div>`;
+        hasContent = true;
+        if (st.key.includes('vacanta')) vacantaDays++;
+      }
+    }
+
+    // Master course events (only during Modul III active teaching weeks)
+    if (hasMaster && !isWeekend) {
+      const schedule = MASTER_SCHEDULE[dow] || [];
+      if (schedule.length > 0) {
+        const names = [...new Set(schedule.map(s => s.name.includes('Vulnerability') ? 'Vulnerability analysis of computer systems' : 'Intelligent systems in risk analysis'))];
+        html += `<div class="ev ev-master"><strong>🎓 Master — cursuri</strong> <span class="time">${schedule[0].time}–20:25</span><br>${names.join(', ')}</div>`;
+        hasContent = true;
+        masterDays++;
+      }
+    }
+
+    // Faculty specific events (courses/exams from Excel)
+    for (const fe of facEvents) {
+      const cls = 'ev-faculty';
+      const icon = fe.type === 'exam' ? '📝' : '📚';
+      const sala = fe.sala ? ` · ${fe.sala}` : '';
+      html += `<div class="ev ${cls}"><strong>${icon} ${fe.name}</strong><br><span class="time">${fe.interval}h${sala}</span></div>`;
+      hasContent = true;
+      facultyDays++;
+    }
+
+    // Both in same day warning
+    if (hasMaster && facEvents.length > 0 && !isWeekend) {
+      html += `<div class="ev ev-both" style="margin-top:2px"><strong>⚠ Zi aglomerată — ambele</strong></div>`;
+    }
+
+    if (!hasContent && !isWeekend) {
+      html += `<div class="free-day">—</div>`;
+      freeDays++;
+    }
+
+    html += `</div>`;
+  }
+
+  // Trailing empty cells
+  const totalCells = offset + daysInMonth;
+  const remainder = totalCells % 7;
+  if (remainder !== 0) {
+    for (let i = remainder; i < 7; i++) {
+      html += `<div class="day-cell empty"></div>`;
+    }
+  }
+
+  html += `</div>`; // cal-grid
+
+  // Stats
+  html += `<div class="month-stats">
+    <div class="stat">🎓 Master: <strong>${masterDays} zile</strong></div>
+    <div class="stat">📚 Facultate: <strong>${facultyDays} zile</strong></div>
+    <div class="stat">☀️ Vacanță/liber: <strong>${vacantaDays} zile</strong></div>
+    <div class="stat">— Fără cursuri: <strong>${freeDays} zile</strong></div>
+  </div>`;
+
+  el.innerHTML = html;
+}
+
+function getWeekNumber(d) {
+  const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  date.setUTCDate(date.getUTCDate() + 4 - (date.getUTCDay()||7));
+  const yearStart = new Date(Date.UTC(date.getUTCFullYear(),0,1));
+  return Math.ceil((((date - yearStart) / 86400000) + 1)/7);
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+
+function showMonth(id) {
+  document.querySelectorAll('.month-block').forEach(el => el.classList.remove('visible'));
+  document.querySelectorAll('.month-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById('month-' + id).classList.add('visible');
+  document.querySelector(`[onclick="showMonth('${id}')"]`).classList.add('active');
+}
+
+// Render all months
+MONTH_IDS.forEach((id, i) => renderMonth(id, MONTH_NUMS[i], 2026));
+
+</script>
+</body>
+</html>

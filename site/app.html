@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+  <title>SnipLearn — Learn by Scrolling</title>
+  <meta name="theme-color" content="#0f172a"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,800&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html,body,#root{height:100%;width:100%;overflow:hidden;font-family:'DM Sans',sans-serif;-webkit-font-smoothing:antialiased;background:#fff}
+    body{overscroll-behavior:none}
+    ::-webkit-scrollbar{display:none}*{scrollbar-width:none}
+    button{-webkit-tap-highlight-color:transparent;font-family:'DM Sans',sans-serif}
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+<script type="text/babel">
+const{useState,useEffect,useCallback,useMemo}=React;
+
+// ══════════════════ DATA ══════════════════
+const S=[
+  {id:"bio",name:"Biology",emoji:"🧬",c:"#16a34a",cl:"#dcfce7",desc:"Life sciences from cells to ecosystems"},
+  {id:"chem",name:"Chemistry",emoji:"⚗️",c:"#7c3aed",cl:"#ede9fe",desc:"Elements, reactions, and molecular structures"},
+  {id:"phys",name:"Physics",emoji:"⚡",c:"#d97706",cl:"#fef3c7",desc:"Forces, energy, and the laws of nature"},
+  {id:"geo",name:"Geography",emoji:"🌍",c:"#2563eb",cl:"#dbeafe",desc:"Earth's landscapes, climates, and systems"},
+  {id:"hist",name:"History",emoji:"📜",c:"#dc2626",cl:"#fee2e2",desc:"Key events that shaped our world"},
+  {id:"math",name:"Math",emoji:"📐",c:"#0891b2",cl:"#cffafe",desc:"Numbers, patterns, and problem solving"},
+];
+const GL=[
+  {l:5,n:"5th Grade",xp:0},{l:6,n:"6th Grade",xp:200},{l:7,n:"7th Grade",xp:500},
+  {l:8,n:"8th Grade",xp:900},{l:9,n:"9th Grade",xp:1400},{l:10,n:"10th Grade",xp:2000},
+  {l:11,n:"11th Grade",xp:2800},{l:12,n:"12th Grade",xp:3800},{l:13,n:"University",xp:5000},
+];
+const SN=[
+  // BIO
+  {id:"bio-1",sid:"bio",t:"How Cells Divide: Mitosis",
+   ct:"Every cell in your body was once a single cell that divided. Mitosis is the process where one cell becomes two identical copies. It happens in four stages: Prophase (chromosomes condense), Metaphase (chromosomes line up in the middle), Anaphase (chromosomes pull apart), and Telophase (two new nuclei form). Your body performs about 3.8 million cell divisions every second just to keep you alive.",
+   p:1,tp:8,tags:["cells","mitosis","division"],bt:"Biology — 8th Grade",
+   qz:[{q:"How many stages does mitosis have?",o:["2","3","4","6"],c:2,e:"Mitosis has 4 stages: Prophase, Metaphase, Anaphase, and Telophase."},
+       {q:"During which phase do chromosomes line up in the middle?",o:["Prophase","Metaphase","Anaphase","Telophase"],c:1,e:"In Metaphase, chromosomes align at the cell's equator."},
+       {q:"About how many cell divisions happen per second?",o:["380","38,000","3.8 million","38 million"],c:2,e:"Your body performs about 3.8 million cell divisions every second."}],
+   ex:{s:"Mitosis is your body's copy machine. One cell reads its DNA, duplicates everything, then splits into two identical cells. It's how you grow and heal.",
+       a:"Like photocopying a book: organize pages (Prophase), line up on copier (Metaphase), pull copies apart (Anaphase), bind two separate books (Telophase).",
+       p:"When you scrape your knee, mitosis produces new skin cells. Cancer happens when mitosis goes wrong — cells divide uncontrollably.",
+       m:"PMAT — 'Please Make Another Twin' — Prophase, Metaphase, Anaphase, Telophase."}},
+  {id:"bio-2",sid:"bio",t:"DNA: Your Body's Blueprint",
+   ct:"DNA is a molecule shaped like a twisted ladder — the double helix. Each rung is made of paired bases: Adenine with Thymine, Cytosine with Guanine (A-T, C-G). The order of these 3 billion base pairs is your genetic code. Remarkably, 99.9% of your DNA is identical to every other human. That 0.1% difference determines your eye color, height, and even whether cilantro tastes like soap.",
+   p:2,tp:8,tags:["dna","genetics","heredity"],bt:"Biology — 8th Grade",
+   qz:[{q:"What shape is DNA?",o:["Single strand","Triple helix","Double helix","Square lattice"],c:2,e:"DNA forms a double helix — like a twisted ladder."},
+       {q:"Which base pairs with Adenine?",o:["Cytosine","Guanine","Thymine","Uracil"],c:2,e:"Adenine pairs with Thymine (A-T), Cytosine with Guanine (C-G)."},
+       {q:"What % of DNA is identical between all humans?",o:["95%","99%","99.9%","100%"],c:2,e:"99.9% of human DNA is identical across all people."}],
+   ex:{s:"DNA is a recipe book inside every cell containing all instructions to build your body. The 'letters' are four molecules (A, T, C, G) in specific orders.",
+       a:"Like binary code — computers use 0s and 1s to create everything on screen; your body uses four chemical letters to create everything from bones to brains.",
+       p:"Used in crime forensics, predicting disease risk, ancestry tracing, and gene therapy to cure genetic diseases.",
+       m:"AT the CG (At the Computer Game) — Adenine-Thymine, Cytosine-Guanine."}},
+  {id:"bio-3",sid:"bio",t:"Photosynthesis: How Plants Eat Sunlight",
+   ct:"Plants are the original solar panels. Through photosynthesis, they capture light and convert it into glucose. The equation: CO₂ + Water + Light → Glucose + Oxygen. This happens in chloroplasts filled with green chlorophyll. It has two stages: light-dependent reactions and the Calvin cycle. Every breath you take contains oxygen made by photosynthesis.",
+   p:3,tp:8,tags:["photosynthesis","plants","energy"],bt:"Biology — 8th Grade",
+   qz:[{q:"What are the products of photosynthesis?",o:["CO₂ and Water","Glucose and Oxygen","Protein and Fat","Nitrogen and Hydrogen"],c:1,e:"Photosynthesis produces glucose and oxygen."},
+       {q:"Where does photosynthesis occur?",o:["Nucleus","Mitochondria","Chloroplasts","Cell wall"],c:2,e:"In chloroplasts, which contain chlorophyll."},
+       {q:"What gives plants their green color?",o:["Glucose","Chlorophyll","Cellulose","Cytoplasm"],c:1,e:"Chlorophyll reflects green light."}],
+   ex:{s:"Plants make food using sunlight, water, and CO₂. They release oxygen as a byproduct. No photosynthesis = no oxygen = no food chain.",
+       a:"A factory: sunlight is electricity, water and CO₂ are raw materials, glucose is the product, oxygen is the exhaust.",
+       p:"Why farmers care about sunlight. Scientists are developing artificial photosynthesis — solar panels that produce fuel from sunlight.",
+       m:"Plants take 'CO₂ + H₂O' and spit out 'GO' — Glucose + Oxygen."}},
+  {id:"bio-4",sid:"bio",t:"The Human Heart: Your Tireless Pump",
+   ct:"Your heart beats about 100,000 times per day, pumping 7,500 liters of blood. It has four chambers: two atria (upper, receive blood) and two ventricles (lower, pump it out). The right side sends blood to the lungs for oxygen. The left side sends oxygen-rich blood to the body. The left ventricle has the thickest walls because it pushes blood through your entire body.",
+   p:4,tp:8,tags:["heart","circulation","anatomy"],bt:"Biology — 8th Grade",
+   qz:[{q:"How many chambers does the heart have?",o:["2","3","4","5"],c:2,e:"Four: two atria and two ventricles."},
+       {q:"Which side pumps blood to the lungs?",o:["Left","Right","Both","Neither"],c:1,e:"The right side sends blood to lungs."},
+       {q:"Why is the left ventricle thicker?",o:["Closer to lungs","Pumps to entire body","Beats faster","Stores more blood"],c:1,e:"Needs more muscle to push blood through the entire body."}],
+   ex:{s:"A double pump. Right half → lungs (get oxygen). Left half → whole body (deliver oxygen). Never stops your entire life.",
+       a:"Two pumps in a figure-8: Pump 1 (right) = short trip to lungs. Pump 2 (left) = long road trip through your body.",
+       p:"Blood pressure 120/80: top = left ventricle squeezes, bottom = relaxes. Exercise makes the heart more efficient.",
+       m:"Right = Lungs (short trip). Left = Body (long trip)."}},
+  // PHYSICS
+  {id:"phys-1",sid:"phys",t:"Ohm's Law: The Traffic Rule of Electricity",
+   ct:"Imagine electricity like water in a pipe. Ohm's Law: Voltage = Current × Resistance (V = I × R). Voltage is 'pressure' pushing electrons, Current is how many electrons flow per second, Resistance is how much the wire fights the flow. Thick copper wire = low resistance (wide pipe). Thin wire = high resistance (narrow pipe). This is why your phone charger gets warm — resistance converts electrical energy into heat.",
+   p:1,tp:7,tags:["electricity","ohms-law","circuits"],bt:"Physics — 8th Grade",
+   qz:[{q:"What is the formula for Ohm's Law?",o:["V = I / R","V = I × R","V = I + R","I = V × R"],c:1,e:"V = I × R (Voltage = Current × Resistance)."},
+       {q:"Why does your charger get warm?",o:["Battery overload","Resistance → heat","Software issue","Too much voltage"],c:1,e:"Resistance converts electrical energy into heat."},
+       {q:"High resistance means?",o:["More electron flow","Wide pipe","Narrow pipe","No voltage needed"],c:2,e:"High resistance restricts flow like a narrow pipe."}],
+   ex:{s:"Push harder (more voltage) = more current. Harder path (more resistance) = less current. The fundamental rule of electronics.",
+       a:"Garden hose: Voltage = water pressure, Current = water flow, Resistance = squeezing the hose.",
+       p:"Dimmer switches increase resistance. Engineers use it for LED circuits, power grids, chargers.",
+       m:"VIR triangle — V on top, I × R on bottom."}},
+  {id:"phys-2",sid:"phys",t:"Newton's Three Laws of Motion",
+   ct:"1st Law: Objects stay still or keep moving unless a force acts (why you lurch when a car brakes). 2nd Law: F = ma — pushing a cart is easy, pushing a car is hard. 3rd Law: Every action has an equal opposite reaction — rockets push gas down, gas pushes rocket up. These three rules explain everything from orbits to walking.",
+   p:2,tp:7,tags:["newton","motion","forces"],bt:"Physics — 8th Grade",
+   qz:[{q:"Newton's 1st Law describes?",o:["F = ma","Inertia (resist change)","Action-reaction","Gravity"],c:1,e:"1st Law (inertia): objects resist changes in motion."},
+       {q:"Double the force, same mass =?",o:["Half acceleration","Double acceleration","Double mass","Same speed"],c:1,e:"F=ma: doubling force doubles acceleration."},
+       {q:"Rocket pushes gas down. What pushes it up?",o:["Gravity reversal","Air pressure","Gas pushes back","Fuel alone"],c:2,e:"3rd Law: equal and opposite reaction."}],
+   ex:{s:"1st: things don't move unless pushed. 2nd: heavier = harder to move. 3rd: every push creates a push back.",
+       a:"Ice skating: glide forever (1st), pushing child easier than adult (2nd), push wall → wall pushes you (3rd).",
+       p:"Seatbelts exist because of the 1st Law. Engines designed around F=ma. Rockets work on the 3rd Law.",
+       m:"1-2-3: Lazy, Forceful, Reactive."}},
+  {id:"phys-3",sid:"phys",t:"Energy Can't Be Created or Destroyed",
+   ct:"The Law of Conservation of Energy: energy transforms but is never created or destroyed. A roller coaster at the top has potential energy (height). Rolling down converts to kinetic energy (motion). Some always becomes heat via friction. This is why perpetual motion machines are impossible — energy always 'leaks' as heat.",
+   p:3,tp:7,tags:["energy","conservation","thermodynamics"],bt:"Physics — 8th Grade",
+   qz:[{q:"Energy according to Conservation Law?",o:["Can be created","Can be destroyed","Transforms forms","Disappears"],c:2,e:"Energy only changes form."},
+       {q:"Ball at top of hill has?",o:["Kinetic","Thermal","Potential","Chemical"],c:2,e:"Height = gravitational potential energy."},
+       {q:"Why no perpetual motion?",o:["Gravity stops it","Energy leaks as heat","Needs fuel","Air destroys energy"],c:1,e:"Friction always converts some energy to heat."}],
+   ex:{s:"Like money — change dollars to euros but can't create money from nothing. Energy changes form: motion, heat, light, sound.",
+       a:"Bouncing ball: top=potential, falling=kinetic, hit=sound+heat. Each bounce lower because energy leaked.",
+       p:"Power plants transform energy. Solar panels convert light directly to electrical.",
+       m:"Energy is a SHAPE-SHIFTER — never dies. PE→KE→Heat."}},
+  // CHEMISTRY
+  {id:"chem-1",sid:"chem",t:"The Periodic Table: Nature's Cheat Sheet",
+   ct:"Mendeleev arranged elements by atomic weight in 1869, noticing similar properties at regular intervals. He left gaps for undiscovered elements and predicted their properties — he was right. The modern table has 118 elements by atomic number. Same column (group) = similar behavior: Group 1 metals explode in water, Group 18 noble gases barely react.",
+   p:1,tp:6,tags:["periodic-table","elements","mendeleev"],bt:"Chemistry — 8th Grade",
+   qz:[{q:"Who created the first periodic table?",o:["Einstein","Newton","Mendeleev","Bohr"],c:2,e:"Mendeleev, in 1869."},
+       {q:"How many elements in the modern table?",o:["92","108","118","126"],c:2,e:"118 confirmed elements."},
+       {q:"Group 1 metals + water =?",o:["Dissolve quietly","React violently","Freeze water","Nothing"],c:1,e:"Group 1 alkali metals react explosively with water."}],
+   ex:{s:"Organizes every element by atomic number. Same column = similar behaviors. Like a seating chart where similar personalities sit together.",
+       a:"School cafeteria: athletes together, artists together. The table does the same — reactive metals in one column, inert gases in another.",
+       p:"Chemists predict reactions. Need a battery? Reactive metals. Non-reactive container? Noble gases.",
+       m:"Groups=columns=similar behavior. Periods=rows=increasing size."}},
+  {id:"chem-2",sid:"chem",t:"Atoms: The Building Blocks of Everything",
+   ct:"Everything — your phone, the air, your body — is made of atoms. An atom has a nucleus with protons (+) and neutrons (neutral), surrounded by electrons (-) in orbital shells. The number of protons defines the element: 1=Hydrogen, 6=Carbon, 79=Gold. About 10 million atoms could fit across the period at the end of this sentence.",
+   p:2,tp:6,tags:["atoms","structure","elements"],bt:"Chemistry — 8th Grade",
+   qz:[{q:"What's in an atom's nucleus?",o:["Electrons + neutrons","Protons + electrons","Protons + neutrons","Only protons"],c:2,e:"Nucleus = protons (positive) + neutrons (neutral)."},
+       {q:"What defines which element an atom is?",o:["Electrons","Neutrons","Protons","Size"],c:2,e:"Number of protons = the element."},
+       {q:"How many atoms fit across a period (.)?",o:["1,000","100,000","10 million","1 billion"],c:2,e:"About 10 million atoms across a period."}],
+   ex:{s:"A tiny solar system: nucleus is the sun, electrons are orbiting planets. Different proton counts = different elements.",
+       a:"LEGO bricks — every creation uses the same basic bricks. 118 atom types combine to make every substance in the universe.",
+       p:"Lets us create plastics, build electronics, and generate nuclear energy by splitting atoms.",
+       m:"PEN — Protons (Positive), Electrons (nEgative), Neutrons (Neutral)."}},
+  {id:"chem-3",sid:"chem",t:"Chemical Reactions: Rearranging Atoms",
+   ct:"In a chemical reaction, atoms rearrange to form new substances. Reactants → Products. Key rule: atoms are never created or destroyed — they swap partners. Equations must be balanced (same atoms both sides). Signs: color change, gas bubbles, temperature change, or precipitate forming. Rusting, burning, and cooking are all chemical reactions.",
+   p:3,tp:6,tags:["reactions","equations","bonding"],bt:"Chemistry — 8th Grade",
+   qz:[{q:"What happens to atoms in a reaction?",o:["Destroyed","Created","Rearranged","Shrink"],c:2,e:"Atoms rearrange into new combinations."},
+       {q:"Why balance equations?",o:["Aesthetics","Atoms can't be created/destroyed","Make them longer","Optional"],c:1,e:"Conservation of mass: same atoms on both sides."},
+       {q:"Which is NOT a sign of a reaction?",o:["Color change","Sugar dissolving in water","Gas bubbles","Temperature change"],c:1,e:"Dissolving sugar is a physical change, not chemical."}],
+   ex:{s:"Like partner dances: atoms break old bonds and form new ones. Nothing gained or lost — just rearranged.",
+       a:"Disassembling two LEGO houses to build a car and boat. Same bricks, new arrangements.",
+       p:"Cooking = chemistry (heat rearranges egg proteins). Batteries produce electricity via reactions. Medicine triggers specific body reactions.",
+       m:"Reactants → Products. R before P in the alphabet, like reactants before products."}},
+  // GEOGRAPHY
+  {id:"geo-1",sid:"geo",t:"Why Do Tectonic Plates Move?",
+   ct:"Earth's surface is broken into ~15 major plates floating on semi-liquid mantle rock. Heat from Earth's core creates convection currents — hot rock rises, cools, sinks, dragging plates. Plates collide → mountains (Himalayas grow 1cm/year). Pull apart → new ocean floor (Atlantic widens 2.5cm/year). Slide past → earthquakes (San Andreas Fault).",
+   p:1,tp:5,tags:["tectonic-plates","earthquakes","geology"],bt:"Geography — 7th Grade",
+   qz:[{q:"What moves tectonic plates?",o:["Wind","Ocean currents","Mantle convection","Moon's gravity"],c:2,e:"Heat from Earth's core creates convection currents."},
+       {q:"What forms where plates collide?",o:["Oceans","Mountains","Deserts","Rivers"],c:1,e:"Rock crumples upward forming mountains."},
+       {q:"How fast is the Atlantic widening?",o:["2.5mm/yr","2.5cm/yr","2.5m/yr","25cm/yr"],c:1,e:"About 2.5cm per year."}],
+   ex:{s:"Earth's crust is cracked into giant plates floating on hot gooey rock. They move slowly, causing earthquakes, volcanoes, mountains.",
+       a:"Thick soup simmering: hot soup rises center, cools edges, sinks. Crackers on top drift around — that's tectonic plates.",
+       p:"Helps predict earthquake zones (Japan, California, Turkey), locate minerals, understand volcanoes.",
+       m:"Collide=Mountains, Divide=Ocean floor, Slide=Earthquakes."}},
+  {id:"geo-2",sid:"geo",t:"The Water Cycle: Earth's Recycling System",
+   ct:"Every water drop has been recycled for billions of years. Four stages: Evaporation (sun heats water to vapor), Condensation (vapor cools into clouds), Precipitation (rain/snow/hail), Collection (oceans, rivers, underground). 97% of Earth's water is saltwater. Only 3% is fresh, mostly locked in ice caps.",
+   p:2,tp:5,tags:["water-cycle","climate","oceans"],bt:"Geography — 7th Grade",
+   qz:[{q:"How much of Earth's water is fresh?",o:["3%","10%","25%","50%"],c:0,e:"Only about 3%, mostly frozen."},
+       {q:"What turns liquid water to vapor?",o:["Condensation","Precipitation","Evaporation","Collection"],c:2,e:"Evaporation: heat turns liquid to gas."},
+       {q:"Where is most fresh water stored?",o:["Rivers","Underground","Lakes","Ice caps"],c:3,e:"Mostly in polar ice caps and glaciers."}],
+   ex:{s:"Water loops forever: ocean→clouds→rain→rivers→ocean. Sun powers it by evaporating water, gravity pulls it back.",
+       a:"A giant distillery: sun 'boils' ocean water, steam rises and cools to droplets, pours back down. Natural purification.",
+       p:"Drives all weather. Droughts = evaporation exceeds precipitation. Floods = too much precipitation. Climate change disrupts the balance.",
+       m:"ECPC — 'Every Cloud Produces Collectibles' — Evaporation, Condensation, Precipitation, Collection."}},
+  {id:"geo-3",sid:"geo",t:"Climate Zones: Why Isn't Everywhere the Same?",
+   ct:"Five main climate zones by latitude: Tropical (equator, hot+wet), Dry (subtropics, deserts), Temperate (four seasons), Continental (extreme swings), Polar (permanently cold). Altitude matters too: temperature drops ~6.5°C per 1,000m elevation, so mountaintops are cold even at the equator.",
+   p:3,tp:5,tags:["climate","zones","weather"],bt:"Geography — 7th Grade",
+   qz:[{q:"How many main climate zones?",o:["3","4","5","7"],c:2,e:"Five: Tropical, Dry, Temperate, Continental, Polar."},
+       {q:"Temperature drop per 1,000m altitude?",o:["2°C","4.5°C","6.5°C","10°C"],c:2,e:"About 6.5°C per 1,000m."},
+       {q:"Which zone has four seasons?",o:["Tropical","Dry","Temperate","Polar"],c:2,e:"Temperate zones have four distinct seasons."}],
+   ex:{s:"Closer to equator = more direct sunlight = hotter. Closer to poles = more spread sunlight = colder.",
+       a:"Flashlight straight down = concentrated bright (equator). Tilted = spreads over larger area, dimmer (poles).",
+       p:"Farmers choose crops by zone. Cities plan infrastructure. Climate change is shifting zones.",
+       m:"Equator to pole: 'Totally Dry Temperatures Create Polar' — Tropical, Dry, Temperate, Continental, Polar."}},
+  // HISTORY
+  {id:"hist-1",sid:"hist",t:"The French Revolution: When Bread Ran Out",
+   ct:"In 1789, France was bankrupt. Louis XVI lived in luxury at Versailles while people couldn't afford bread. On July 14, a crowd stormed the Bastille fortress — a symbol of royal power. This overthrew the monarchy, established a republic, and introduced the Declaration of the Rights of Man. Liberty, equality, fraternity reshaped modern democracy forever.",
+   p:1,tp:5,tags:["french-revolution","democracy","18th-century"],bt:"History — 8th Grade",
+   qz:[{q:"What year did the French Revolution begin?",o:["1776","1789","1804","1815"],c:1,e:"1789, with the storming of the Bastille."},
+       {q:"What was stormed on July 14?",o:["The Louvre","Notre Dame","The Bastille","Versailles"],c:2,e:"The Bastille prison — now France's national day."},
+       {q:"What document declared citizens' rights?",o:["Magna Carta","Declaration of Rights of Man","Constitution of 1791","Treaty of Versailles"],c:1,e:"The Declaration of the Rights of Man and Citizen."}],
+   ex:{s:"France's king spent all the money while people starved. They overthrew him and created government based on equal rights.",
+       a:"A household where one person eats all the food. Eventually the hungry family unites, removes them, and shares equally.",
+       p:"Gave us citizens' rights, separation of church and state, and government serving the people.",
+       m:"1789 — 'Stormed for FREEDOM in 89'."}},
+  {id:"hist-2",sid:"hist",t:"The Industrial Revolution: Machines Change Everything",
+   ct:"Starting ~1760 in Britain, production shifted from hand tools to machines, home workshops to factories. James Watt improved the steam engine for factories, trains, ships. People flooded to cities. Production soared but conditions were brutal: 16-hour days, child labor, dangerous machines. This created the modern economy, middle class, and eventually labor laws.",
+   p:2,tp:5,tags:["industrial-revolution","technology","britain"],bt:"History — 8th Grade",
+   qz:[{q:"Where did the Industrial Revolution begin?",o:["France","Germany","USA","Britain"],c:3,e:"Britain, around 1760."},
+       {q:"Who improved the steam engine?",o:["Edison","Watt","Franklin","Tesla"],c:1,e:"James Watt made it practical for widespread use."},
+       {q:"A major negative consequence?",o:["Lower production","Brutal working conditions","Less trade","Food shortages"],c:1,e:"16-hour days, child labor, dangerous machines."}],
+   ex:{s:"Before 1760s, things made by hand. Machines changed everything — one factory outproduced a thousand craftsmen.",
+       a:"All homework by hand vs. computer. Computer is faster but the transition was messy.",
+       p:"Created mass production, urbanization, transport, wage economy. Also sparked environmental problems and labor rights.",
+       m:"1760s Britain: 'Steam, Sweat, and Steel' — the three S's."}},
+  {id:"hist-3",sid:"hist",t:"World War I: The War That Changed Warfare",
+   ct:"In 1914, the assassination of Archduke Franz Ferdinand triggered alliance chains plunging Europe into war. Supposed to be 'over by Christmas,' it lasted four years. New weapons — machine guns, poison gas, tanks, aircraft — made old tactics deadly. Soldiers lived in muddy trenches. By 1918, ~20 million died. It redrew Europe's map and planted seeds for WWII.",
+   p:3,tp:5,tags:["wwi","20th-century","warfare"],bt:"History — 8th Grade",
+   qz:[{q:"What triggered WWI?",o:["Sinking of Lusitania","Assassination of Franz Ferdinand","Invasion of Poland","Russian Revolution"],c:1,e:"Assassination of Archduke Franz Ferdinand in 1914."},
+       {q:"How long did WWI last?",o:["2 years","4 years","6 years","8 years"],c:1,e:"1914 to 1918 — about 4 years."},
+       {q:"Which was NOT a WWI weapon?",o:["Machine guns","Poison gas","Nuclear bombs","Tanks"],c:2,e:"Nuclear bombs were WWII (1940s)."}],
+   ex:{s:"A political assassination caused alliance dominoes pulling most of Europe into war. New industrial weapons made it deadly.",
+       a:"Two friend groups at school. One insults another, friends jump in, their friends jump in. Soon the whole school fights.",
+       p:"Led to League of Nations (precursor to UN), reshaped Middle East borders (still causing conflict), showed need for international cooperation.",
+       m:"MAIN causes: Militarism, Alliances, Imperialism, Nationalism."}},
+  // MATH
+  {id:"math-1",sid:"math",t:"Pythagorean Theorem: The Corner Rule",
+   ct:"In any right triangle: a² + b² = c² (c = hypotenuse, the longest side). This 2,500-year-old formula is everywhere: architects check walls are square, GPS calculates your position, video games measure distances. If a=3 and b=4, then c = √(9+16) = √25 = 5.",
+   p:1,tp:6,tags:["pythagorean","triangles","geometry"],bt:"Math — 8th Grade",
+   qz:[{q:"The Pythagorean theorem formula?",o:["a+b=c","a²+b²=c²","a×b=c²","2a+2b=c"],c:1,e:"a² + b² = c², where c is the hypotenuse."},
+       {q:"If a=3 and b=4, what is c?",o:["5","6","7","12"],c:0,e:"√(9+16)=√25=5. The famous 3-4-5 triangle."},
+       {q:"The hypotenuse is?",o:["Shortest side","Any side","Opposite the right angle","Vertical side"],c:2,e:"The longest side, opposite the 90° angle."}],
+   ex:{s:"Know two sides of a right triangle? Square both, add or subtract, take the square root. Done.",
+       a:"In a park: walk 3 blocks east then 4 north (7 total). Diagonal shortcut? Pythagorean says exactly 5 blocks.",
+       p:"GPS uses it constantly. Game developers use it for collision. Carpenters use 3-4-5 to check square corners.",
+       m:"3-4-5 is your test case. Sing 'A squared plus B squared equals C squared.'"}},
+  {id:"math-2",sid:"math",t:"Linear Equations: Finding the Unknown",
+   ct:"A linear equation: highest power of the variable is 1, like 2x + 5 = 15. Golden rule: whatever you do to one side, do to the other. Subtract 5: 2x = 10. Divide by 2: x = 5. Check: 2(5)+5 = 15 ✓. When graphed, linear equations produce straight lines. The slope = steepness, y-intercept = where it crosses the y-axis.",
+   p:2,tp:6,tags:["algebra","equations","linear"],bt:"Math — 8th Grade",
+   qz:[{q:"Solve: 2x + 5 = 15",o:["x=3","x=5","x=10","x=7.5"],c:1,e:"Subtract 5: 2x=10. Divide by 2: x=5."},
+       {q:"Linear equations graph as?",o:["Curve","Circle","Straight line","Parabola"],c:2,e:"Always straight lines — that's why they're called 'linear.'"},
+       {q:"Golden rule of equations?",o:["Always add first","Same operation on both sides","Only multiply","Guess and check"],c:1,e:"Any operation on one side must be done to the other."}],
+   ex:{s:"Like a balance scale. Both sides must stay equal. 'Undo' operations around x, step by step.",
+       a:"x is a gift inside wrapping and a box. Remove box (subtract), unwrap (divide). Do each step to both sides.",
+       p:"Calculate costs (how many $2 apples with $15?), predict trends, convert units (F to C).",
+       m:"'Balance the scale' — picture a seesaw. Add to one side, add to the other."}},
+  {id:"math-3",sid:"math",t:"Percentages: The Language of Comparison",
+   ct:"Percent = 'per hundred.' 50% = half. To find X% of Y: convert to decimal and multiply (25% of 80 = 0.25 × 80 = 20). To find what % A is of B: A÷B×100 (30 of 120 = 25%). Everywhere: tax, tips, discounts, interest rates, battery life, test scores. 20% off $50 = $10 saved.",
+   p:3,tp:6,tags:["percentages","arithmetic","practical-math"],bt:"Math — 8th Grade",
+   qz:[{q:"25% of 80?",o:["15","20","25","40"],c:1,e:"0.25 × 80 = 20."},
+       {q:"What % is 30 of 120?",o:["20%","25%","30%","40%"],c:1,e:"30÷120=0.25 → 25%."},
+       {q:"$50 item, 20% off. You pay?",o:["$30","$35","$40","$45"],c:2,e:"20% of $50=$10. $50-$10=$40."}],
+   ex:{s:"Fractions out of 100. Easiest way to compare different-sized things.",
+       a:"Pizza: 50%=half, 25%=quarter. Whole=100% regardless of pizza size. Standardizes everything.",
+       p:"Tips (15-20%), discounts (30% off = ×0.7), battery (87%=87/100), news statistics.",
+       m:"X% of Y: move decimal two left, multiply. Or flip: X% of Y = Y% of X. So 8% of 50 = 50% of 8 = 4."}},
+];
+
+const PATHS=[
+  {id:"p-sci",name:"Science Foundations",emoji:"🔬",color:"#7c3aed",desc:"Master Biology, Chemistry, and Physics fundamentals",
+   subs:["bio","chem","phys"],grade:"8th Grade",est:"~4 weeks",
+   mods:[{name:"Life's Building Blocks",ids:["bio-1","bio-2","bio-3","bio-4"],desc:"Cells, DNA, photosynthesis, and the heart"},
+         {name:"Matter & Atoms",ids:["chem-1","chem-2","chem-3"],desc:"Periodic table, atomic structure, and reactions"},
+         {name:"Forces & Energy",ids:["phys-1","phys-2","phys-3"],desc:"Ohm's Law, Newton's Laws, and conservation of energy"}]},
+  {id:"p-world",name:"World Knowledge",emoji:"🌎",color:"#2563eb",desc:"Understand Earth's systems and history",
+   subs:["geo","hist"],grade:"7th–8th Grade",est:"~3 weeks",
+   mods:[{name:"Planet Earth",ids:["geo-1","geo-2","geo-3"],desc:"Tectonics, water cycle, and climate zones"},
+         {name:"History Makers",ids:["hist-1","hist-2","hist-3"],desc:"French Revolution, Industrial Revolution, and WWI"}]},
+  {id:"p-math",name:"Math Essentials",emoji:"🧮",color:"#0891b2",desc:"Build a solid math foundation",
+   subs:["math"],grade:"8th Grade",est:"~2 weeks",
+   mods:[{name:"Core Skills",ids:["math-1","math-2","math-3"],desc:"Pythagorean theorem, equations, and percentages"}]},
+];
+
+const gs=id=>SN.find(s=>s.id===id);
+const gsu=id=>S.find(s=>s.id===id);
+
+// ══════════════════ SNIPPET CARD ══════════════════
+function Card({sn,sub,onQ,onE,rd}){
+  const ir=rd.has(sn.id);
+  return(<div style={{height:"100%",width:"100%",display:"flex",flexDirection:"column",justifyContent:"center",padding:"24px 20px",background:`linear-gradient(170deg,${sub.cl} 0%,#fff 40%)`,position:"relative",overflow:"hidden"}}>
+    <div style={{position:"absolute",top:-40,right:-40,width:160,height:160,borderRadius:"50%",background:sub.c,opacity:.06}}/>
+    <div style={{position:"absolute",bottom:-60,left:-30,width:200,height:200,borderRadius:"50%",background:sub.c,opacity:.04}}/>
+    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16,zIndex:1,position:"relative"}}>
+      <div style={{display:"inline-flex",alignItems:"center",gap:6,background:sub.c,color:"#fff",borderRadius:20,padding:"5px 12px",fontSize:12,fontWeight:600}}><span>{sub.emoji}</span><span>{sub.name}</span></div>
+      <div style={{fontSize:11,color:"#94a3b8",fontWeight:500,display:"flex",alignItems:"center",gap:6}}>{ir&&<span style={{color:sub.c,fontSize:14}}>✓</span>}<span>p.{sn.p}/{sn.tp}</span></div>
+    </div>
+    <div style={{fontSize:11,color:"#94a3b8",fontWeight:500,letterSpacing:".05em",textTransform:"uppercase",marginBottom:8,zIndex:1,position:"relative"}}>{sn.bt}</div>
+    <h2 style={{fontFamily:"'Fraunces',serif",fontSize:24,fontWeight:700,color:"#0f172a",margin:"0 0 14px",lineHeight:1.2,zIndex:1,position:"relative"}}>{sn.t}</h2>
+    <p style={{fontSize:15,lineHeight:1.7,color:"#334155",margin:"0 0 20px",zIndex:1,position:"relative",flexGrow:1,display:"flex",alignItems:"center"}}>{sn.ct}</p>
+    <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:18,zIndex:1,position:"relative"}}>{sn.tags.map(t=><span key={t} style={{background:"#f1f5f9",color:"#64748b",fontSize:11,padding:"3px 10px",borderRadius:12,fontWeight:500}}>#{t}</span>)}</div>
+    <div style={{display:"flex",gap:10,zIndex:1,position:"relative"}}>
+      <button onClick={onQ} style={{flex:1,padding:"14px",borderRadius:14,background:sub.c,color:"#fff",border:"none",fontSize:14,fontWeight:600,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>📝 Quiz Me</button>
+      <button onClick={onE} style={{flex:1,padding:"14px",borderRadius:14,background:"#f8fafc",color:"#334155",border:"1.5px solid #e2e8f0",fontSize:14,fontWeight:600,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>💡 Explain</button>
+    </div>
+    <div style={{textAlign:"center",marginTop:14,opacity:.4}}><span style={{fontSize:11,color:"#94a3b8"}}>↕ swipe to explore</span></div>
+  </div>);
+}
+
+// ══════════════════ QUIZ ══════════════════
+function Quiz({sn,sub,onClose,onDone}){
+  const qs=sn.qz;const[ci,setCi]=useState(0);const[sel,setSel]=useState(null);const[sh,setSh]=useState(false);const[sc,setSc]=useState(0);const[fin,setFin]=useState(false);
+  const pick=i=>{if(sel!==null)return;setSel(i);if(i===qs[ci].c)setSc(s=>s+1);setSh(true);};
+  const nxt=()=>{if(ci+1>=qs.length){setFin(true);onDone(Math.round((sc/qs.length)*100));}else{setCi(c=>c+1);setSel(null);setSh(false);}};
+  const fp=Math.round((sc/qs.length)*100),pass=fp>=70;
+  if(fin)return(<div style={{position:"fixed",inset:0,zIndex:200,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:pass?`linear-gradient(170deg,${sub.cl},#fff)`:"linear-gradient(170deg,#fee2e2,#fff)",padding:32}}>
+    <div style={{fontSize:72,marginBottom:16}}>{pass?"🎉":"📚"}</div>
+    <h2 style={{fontFamily:"'Fraunces',serif",fontSize:32,fontWeight:700,color:"#0f172a",margin:"0 0 8px"}}>{pass?"Great Job!":"Keep Going!"}</h2>
+    <p style={{fontSize:16,color:"#64748b",marginBottom:8}}>You scored</p>
+    <div style={{fontSize:56,fontWeight:800,color:pass?sub.c:"#ef4444",marginBottom:8}}>{fp}%</div>
+    <p style={{fontSize:14,color:"#94a3b8",marginBottom:32}}>{sc}/{qs.length} correct · +{sc*15} XP</p>
+    <div style={{display:"flex",gap:12,width:"100%",maxWidth:320}}>
+      {!pass&&<button onClick={onClose} style={{flex:1,padding:14,borderRadius:14,background:"#f1f5f9",color:"#334155",border:"none",fontSize:14,fontWeight:600,cursor:"pointer"}}>Re-read</button>}
+      <button onClick={onClose} style={{flex:1,padding:14,borderRadius:14,background:sub.c,color:"#fff",border:"none",fontSize:14,fontWeight:600,cursor:"pointer"}}>Continue</button>
+    </div></div>);
+  const q=qs[ci];
+  return(<div style={{position:"fixed",inset:0,zIndex:200,display:"flex",flexDirection:"column",background:"#fff"}}>
+    <div style={{padding:"16px 20px",display:"flex",alignItems:"center",justifyContent:"space-between",borderBottom:"1px solid #f1f5f9"}}>
+      <button onClick={onClose} style={{background:"none",border:"none",fontSize:14,color:"#64748b",cursor:"pointer",fontWeight:500}}>✕ Close</button>
+      <span style={{fontSize:13,fontWeight:600,color:sub.c}}>{ci+1}/{qs.length}</span></div>
+    <div style={{height:3,background:"#f1f5f9"}}><div style={{height:"100%",background:sub.c,width:`${((ci+(sh?1:0))/qs.length)*100}%`,transition:"width .4s"}}/></div>
+    <div style={{flex:1,padding:"32px 20px",display:"flex",flexDirection:"column"}}>
+      <h3 style={{fontFamily:"'Fraunces',serif",fontSize:22,fontWeight:700,color:"#0f172a",margin:"0 0 28px",lineHeight:1.3}}>{q.q}</h3>
+      <div style={{display:"flex",flexDirection:"column",gap:10}}>
+        {q.o.map((op,i)=>{let bg="#f8fafc",bd="1.5px solid #e2e8f0",co="#334155";
+          if(sh){if(i===q.c){bg="#dcfce7";bd="1.5px solid #22c55e";co="#166534";}else if(i===sel){bg="#fee2e2";bd="1.5px solid #ef4444";co="#991b1b";}else co="#94a3b8";}
+          else if(i===sel){bg=sub.cl;bd=`1.5px solid ${sub.c}`;}
+          return(<button key={i} onClick={()=>pick(i)} style={{padding:"16px 18px",borderRadius:14,background:bg,border:bd,color:co,fontSize:15,fontWeight:500,cursor:sh?"default":"pointer",textAlign:"left",transition:"all .2s",display:"flex",alignItems:"center",gap:12}}>
+            <span style={{width:28,height:28,borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,fontWeight:700,flexShrink:0,background:sh&&i===q.c?"#22c55e":sh&&i===sel?"#ef4444":"#e2e8f0",color:sh&&(i===q.c||i===sel)?"#fff":"#64748b"}}>
+              {sh&&i===q.c?"✓":sh&&i===sel&&i!==q.c?"✕":String.fromCharCode(65+i)}</span>{op}</button>);})}
+      </div>
+      {sh&&<div style={{marginTop:20,padding:16,borderRadius:14,background:"#fffbeb",border:"1px solid #fde68a"}}><p style={{fontSize:13,color:"#92400e",margin:0,lineHeight:1.6}}>💡 {q.e}</p></div>}
+      {sh&&<button onClick={nxt} style={{marginTop:"auto",padding:16,borderRadius:14,background:sub.c,color:"#fff",border:"none",fontSize:15,fontWeight:600,cursor:"pointer",width:"100%"}}>{ci+1>=qs.length?"See Results":"Next Question →"}</button>}
+    </div></div>);
+}
+
+// ══════════════════ EXPLAIN ══════════════════
+function Explain({sn,sub,onClose}){
+  const[step,setStep]=useState(0);const[all,setAll]=useState(false);
+  useEffect(()=>{const t=[];t.push(setTimeout(()=>setStep(1),300));t.push(setTimeout(()=>setStep(2),800));t.push(setTimeout(()=>setStep(3),1300));t.push(setTimeout(()=>{setStep(4);setAll(true);},1800));return()=>t.forEach(clearTimeout);},[]);
+  const secs=[{i:"🎯",t:"Simple Explanation",x:sn.ex.s},{i:"🌊",t:"Real-World Analogy",x:sn.ex.a},{i:"🔧",t:"Practical Application",x:sn.ex.p},{i:"🧠",t:"Memory Trick",x:sn.ex.m}];
+  return(<div style={{position:"fixed",inset:0,zIndex:200,background:"rgba(0,0,0,.4)",display:"flex",alignItems:"flex-end"}} onClick={onClose}>
+    <div onClick={e=>e.stopPropagation()} style={{width:"100%",maxHeight:"85%",background:"#fff",borderRadius:"24px 24px 0 0",padding:"8px 20px 32px",overflowY:"auto"}}>
+      <div style={{display:"flex",justifyContent:"center",padding:"8px 0 16px"}}><div style={{width:40,height:4,borderRadius:2,background:"#e2e8f0"}}/></div>
+      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:20}}><span style={{fontSize:20}}>💡</span><h3 style={{fontFamily:"'Fraunces',serif",fontSize:20,fontWeight:700,color:"#0f172a",margin:0}}>Better Explanation</h3></div>
+      <div style={{background:sub.cl,borderRadius:12,padding:"12px 14px",marginBottom:20,border:`1px solid ${sub.c}22`}}><p style={{fontSize:13,color:"#334155",margin:0,fontWeight:500}}>{sub.emoji} {sn.t}</p></div>
+      {secs.map((s,i)=>(<div key={i} style={{marginBottom:16,opacity:all||step>i?1:0,transform:all||step>i?"translateY(0)":"translateY(12px)",transition:"all .4s"}}>
+        <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}><span style={{fontSize:16}}>{s.i}</span><h4 style={{fontSize:14,fontWeight:700,color:"#0f172a",margin:0}}>{s.t}</h4></div>
+        <p style={{fontSize:14,color:"#475569",margin:0,lineHeight:1.7,paddingLeft:28}}>{s.x}</p></div>))}
+      {all&&<div style={{marginTop:8,padding:14,borderRadius:14,background:"#f8fafc",border:"1px solid #e2e8f0",display:"flex",alignItems:"center",gap:10}}>
+        <span style={{fontSize:20}}>🤖</span><p style={{fontSize:13,color:"#64748b",margin:0,fontStyle:"italic"}}>In the full app, ask follow-up questions here like a tutor chat.</p></div>}
+    </div></div>);
+}
+
+// ══════════════════ HOME ══════════════════
+function Home({sel,setSel,rd,qs,xp,gr,goTab}){
+  const toggle=id=>{setSel(p=>{const n=new Set(p);n.has(id)?n.delete(id):n.add(id);return n;});};
+  const cl=GL.find(g=>g.l===gr)||GL[0],nl=GL.find(g=>g.l===gr+1);
+  const xpPct=nl?Math.min(((xp-cl.xp)/(nl.xp-cl.xp))*100,100):100;
+  const streak=Math.max(1,Math.floor(rd.size/2));
+  const next=SN.filter(s=>sel.has(s.sid)&&!rd.has(s.id))[0];
+  const nsub=next?gsu(next.sid):null;
+  return(<div style={{padding:20,overflowY:"auto",height:"100%",background:"linear-gradient(180deg,#f8fafc 0%,#fff 25%)"}}>
+    <div style={{marginBottom:20}}><h1 style={{fontFamily:"'Fraunces',serif",fontSize:26,fontWeight:800,color:"#0f172a",margin:"0 0 4px"}}>Welcome back! 👋</h1>
+      <p style={{fontSize:14,color:"#64748b",margin:0}}>Keep your streak alive — learn something new today.</p></div>
+    <div style={{display:"flex",gap:8,marginBottom:20}}>
+      {[{i:"🔥",v:streak,l:"Streak",bg:"#fef3c7",c:"#d97706"},{i:"⚡",v:xp,l:"XP",bg:"#ede9fe",c:"#7c3aed"},{i:"📖",v:rd.size,l:"Read",bg:"#dbeafe",c:"#2563eb"}].map((s,i)=>(
+        <div key={i} style={{flex:1,background:s.bg,borderRadius:16,padding:"14px 10px",textAlign:"center"}}>
+          <div style={{fontSize:18}}>{s.i}</div><div style={{fontSize:20,fontWeight:800,color:s.c}}>{s.v}</div>
+          <div style={{fontSize:10,fontWeight:600,color:s.c,opacity:.7}}>{s.l}</div></div>))}
+    </div>
+    <div style={{background:"#fff",borderRadius:18,padding:16,marginBottom:20,border:"1px solid #e8edf5",boxShadow:"0 2px 12px rgba(0,0,0,.03)"}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+        <span style={{fontSize:14,fontWeight:700,color:"#0f172a"}}>📊 {cl.n}</span><span style={{fontSize:12,fontWeight:600,color:"#7c3aed"}}>{xp} XP</span></div>
+      <div style={{height:8,background:"#f1f5f9",borderRadius:4,overflow:"hidden"}}><div style={{height:"100%",width:`${xpPct}%`,background:"linear-gradient(90deg,#7c3aed,#6366f1)",borderRadius:4,transition:"width .6s"}}/></div>
+      {nl&&<p style={{fontSize:11,color:"#94a3b8",margin:"6px 0 0"}}>{nl.xp-xp} XP to {nl.n}</p>}</div>
+    {next&&nsub&&<div onClick={()=>goTab("feed")} style={{background:`linear-gradient(135deg,${nsub.c},${nsub.c}dd)`,borderRadius:18,padding:20,marginBottom:20,cursor:"pointer",color:"#fff",position:"relative",overflow:"hidden"}}>
+      <div style={{position:"absolute",top:-20,right:-20,width:100,height:100,borderRadius:"50%",background:"rgba(255,255,255,.1)"}}/>
+      <div style={{fontSize:12,fontWeight:600,opacity:.8,marginBottom:6}}>CONTINUE LEARNING</div>
+      <h3 style={{fontFamily:"'Fraunces',serif",fontSize:18,fontWeight:700,margin:"0 0 6px"}}>{next.t}</h3>
+      <p style={{fontSize:12,opacity:.8,margin:0}}>{nsub.emoji} {nsub.name} · p.{next.p}/{next.tp}</p>
+      <div style={{marginTop:12,display:"inline-flex",alignItems:"center",gap:6,background:"rgba(255,255,255,.2)",borderRadius:10,padding:"8px 14px",fontSize:13,fontWeight:600}}>Start reading →</div></div>}
+    <div style={{marginBottom:20}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+        <h2 style={{fontFamily:"'Fraunces',serif",fontSize:18,fontWeight:700,color:"#0f172a",margin:0}}>Your Subjects</h2>
+        <span style={{fontSize:12,color:"#64748b"}}>tap to toggle</span></div>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8}}>
+        {S.map(sub=>{const a=sel.has(sub.id);const ss=SN.filter(s=>s.sid===sub.id);const sr=ss.filter(s=>rd.has(s.id)).length;
+          return(<button key={sub.id} onClick={()=>toggle(sub.id)} style={{padding:"14px 8px",borderRadius:16,background:a?sub.cl:"#f8fafc",border:a?`2px solid ${sub.c}`:"2px solid transparent",cursor:"pointer",textAlign:"center",transition:"all .2s",opacity:a?1:.5}}>
+            <span style={{fontSize:24,display:"block",marginBottom:4}}>{sub.emoji}</span>
+            <span style={{fontSize:11,fontWeight:600,color:a?sub.c:"#94a3b8",display:"block"}}>{sub.name}</span>
+            {a&&<span style={{fontSize:10,color:"#94a3b8",display:"block",marginTop:2}}>{sr}/{ss.length}</span>}</button>);})}</div></div>
+    <div><h2 style={{fontFamily:"'Fraunces',serif",fontSize:18,fontWeight:700,color:"#0f172a",margin:"0 0 12px"}}>Suggested Paths</h2>
+      {PATHS.map(pa=>(<div key={pa.id} onClick={()=>goTab("paths")} style={{background:"#fff",borderRadius:16,padding:14,marginBottom:8,border:"1px solid #e8edf5",cursor:"pointer",display:"flex",alignItems:"center",gap:12}}>
+        <div style={{width:42,height:42,borderRadius:12,background:`${pa.color}15`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0}}>{pa.emoji}</div>
+        <div style={{flex:1}}><div style={{fontSize:14,fontWeight:600,color:"#0f172a"}}>{pa.name}</div>
+          <div style={{fontSize:11,color:"#94a3b8"}}>{pa.mods.reduce((a,m)=>a+m.ids.length,0)} snippets · {pa.est}</div></div>
+        <span style={{fontSize:16,color:"#cbd5e1"}}>›</span></div>))}</div>
+  </div>);
+}
+
+// ══════════════════ PATHS ══════════════════
+function PathsTab({rd,qs,goSnippet}){
+  const[opi,setOpi]=useState(null);const[omi,setOmi]=useState(null);
+  // Module detail view
+  if(opi!==null&&omi!==null){const pa=PATHS[opi],mo=pa.mods[omi];
+    return(<div style={{padding:20,overflowY:"auto",height:"100%",background:"#fff",position:"absolute",inset:0}}>
+      <button onClick={()=>setOmi(null)} style={{background:"none",border:"none",fontSize:14,color:"#64748b",cursor:"pointer",fontWeight:500,marginBottom:16}}>← {pa.name}</button>
+      <h2 style={{fontFamily:"'Fraunces',serif",fontSize:22,fontWeight:700,color:"#0f172a",margin:"0 0 4px"}}>{mo.name}</h2>
+      <p style={{fontSize:13,color:"#64748b",margin:"0 0 20px"}}>{mo.desc}</p>
+      {mo.ids.map((sid,i)=>{const sn=gs(sid);if(!sn)return null;const sub=gsu(sn.sid);const ir=rd.has(sid);const sc=qs[sid];
+        return(<div key={sid} onClick={()=>goSnippet(sid)} style={{background:"#fff",borderRadius:16,padding:16,marginBottom:10,border:ir?`1.5px solid ${sub.c}33`:"1.5px solid #e8edf5",cursor:"pointer",boxShadow:"0 2px 8px rgba(0,0,0,.03)"}}>
+          <div style={{display:"flex",alignItems:"center",gap:12}}>
+            <div style={{width:36,height:36,borderRadius:10,background:ir?sub.c:"#f1f5f9",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,fontWeight:700,color:ir?"#fff":"#94a3b8"}}>{ir?"✓":i+1}</div>
+            <div style={{flex:1}}><div style={{fontSize:14,fontWeight:600,color:"#0f172a"}}>{sn.t}</div>
+              <div style={{fontSize:11,color:"#94a3b8",marginTop:2}}>{sub.emoji} {sub.name}{sc!==undefined?` · Quiz: ${sc}%`:""}</div></div>
+            <span style={{fontSize:14,color:"#cbd5e1"}}>›</span></div></div>);})}
+      <div style={{marginTop:12,textAlign:"center"}}><p style={{fontSize:12,color:"#94a3b8"}}>{mo.ids.filter(id=>rd.has(id)).length}/{mo.ids.length} completed</p></div></div>);}
+  // Path detail view
+  if(opi!==null){const pa=PATHS[opi];const ts=pa.mods.reduce((a,m)=>a+m.ids.length,0);const rc=pa.mods.reduce((a,m)=>a+m.ids.filter(id=>rd.has(id)).length,0);
+    return(<div style={{padding:20,overflowY:"auto",height:"100%",background:"#fff",position:"absolute",inset:0}}>
+      <button onClick={()=>setOpi(null)} style={{background:"none",border:"none",fontSize:14,color:"#64748b",cursor:"pointer",fontWeight:500,marginBottom:16}}>← All Paths</button>
+      <div style={{display:"flex",alignItems:"center",gap:14,marginBottom:16}}>
+        <div style={{width:56,height:56,borderRadius:16,background:`${pa.color}15`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:28}}>{pa.emoji}</div>
+        <div><h2 style={{fontFamily:"'Fraunces',serif",fontSize:22,fontWeight:700,color:"#0f172a",margin:0}}>{pa.name}</h2>
+          <p style={{fontSize:12,color:"#94a3b8",margin:"2px 0 0"}}>{pa.grade} · {ts} snippets · {pa.est}</p></div></div>
+      <p style={{fontSize:14,color:"#475569",marginBottom:16,lineHeight:1.6}}>{pa.desc}</p>
+      <div style={{height:6,background:"#f1f5f9",borderRadius:3,overflow:"hidden",marginBottom:6}}><div style={{height:"100%",width:`${(rc/ts)*100}%`,background:pa.color,borderRadius:3,transition:"width .4s"}}/></div>
+      <p style={{fontSize:12,color:"#94a3b8",marginBottom:20}}>{rc}/{ts} completed</p>
+      {pa.mods.map((mo,mi)=>{const mr=mo.ids.filter(id=>rd.has(id)).length;const pct=Math.round((mr/mo.ids.length)*100);
+        return(<div key={mi} onClick={()=>setOmi(mi)} style={{background:"#fff",borderRadius:16,padding:16,marginBottom:10,border:"1.5px solid #e8edf5",cursor:"pointer",boxShadow:"0 2px 8px rgba(0,0,0,.03)"}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+            <h3 style={{fontSize:15,fontWeight:700,color:"#0f172a",margin:0}}>{mo.name}</h3>
+            <span style={{fontSize:12,fontWeight:600,color:pct===100?"#16a34a":pa.color}}>{pct}%</span></div>
+          <p style={{fontSize:12,color:"#94a3b8",margin:"0 0 10px"}}>{mo.desc} · {mo.ids.length} snippets</p>
+          <div style={{height:4,background:"#f1f5f9",borderRadius:2,overflow:"hidden"}}><div style={{height:"100%",width:`${pct}%`,background:pct===100?"#16a34a":pa.color,borderRadius:2}}/></div></div>);})}</div>);}
+  // Path list
+  return(<div style={{padding:20,overflowY:"auto",height:"100%",background:"linear-gradient(180deg,#faf5ff 0%,#fff 30%)",position:"absolute",inset:0}}>
+    <h2 style={{fontFamily:"'Fraunces',serif",fontSize:24,fontWeight:700,color:"#0f172a",margin:"0 0 4px"}}>Learning Paths</h2>
+    <p style={{fontSize:13,color:"#64748b",margin:"0 0 20px"}}>Structured journeys through your subjects</p>
+    {PATHS.map((pa,pi)=>{const ts=pa.mods.reduce((a,m)=>a+m.ids.length,0);const rc=pa.mods.reduce((a,m)=>a+m.ids.filter(id=>rd.has(id)).length,0);
+      return(<div key={pa.id} style={{background:"#fff",borderRadius:18,padding:18,marginBottom:12,border:"1px solid #e8edf5",boxShadow:"0 2px 12px rgba(0,0,0,.04)"}}>
+        <div style={{display:"flex",alignItems:"flex-start",gap:14}}>
+          <div style={{width:48,height:48,borderRadius:14,background:`${pa.color}15`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:24,flexShrink:0}}>{pa.emoji}</div>
+          <div style={{flex:1}}><h3 style={{fontSize:16,fontWeight:700,color:"#0f172a",margin:"0 0 4px"}}>{pa.name}</h3>
+            <p style={{fontSize:12,color:"#94a3b8",margin:"0 0 8px"}}>{pa.grade} · {ts} snippets · {pa.est}</p>
+            <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>{pa.subs.map(sid=>{const sub=gsu(sid);return sub?<span key={sid} style={{fontSize:10,background:sub.cl,color:sub.c,padding:"2px 8px",borderRadius:8,fontWeight:600}}>{sub.emoji} {sub.name}</span>:null;})}</div></div></div>
+        <div style={{marginTop:12,height:4,background:"#f1f5f9",borderRadius:2,overflow:"hidden"}}><div style={{height:"100%",width:`${(rc/ts)*100}%`,background:pa.color,borderRadius:2,transition:"width .4s"}}/></div>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:8}}>
+          <span style={{fontSize:11,color:"#94a3b8"}}>{rc}/{ts} done</span>
+          <button onClick={()=>setOpi(pi)} style={{background:`${pa.color}12`,color:pa.color,border:`1.5px solid ${pa.color}30`,borderRadius:10,padding:"8px 16px",fontSize:12,fontWeight:600,cursor:"pointer"}}>{rc>0?"Continue":"Start"} →</button></div></div>);})}</div>);
+}
+
+// ══════════════════ PROFILE ══════════════════
+function Profile({rd,xp,gr,qs,sel}){
+  const vals=Object.values(qs);const avg=vals.length?Math.round(vals.reduce((a,b)=>a+b,0)/vals.length):0;
+  const cl=GL.find(g=>g.l===gr)||GL[0],nl=GL.find(g=>g.l===gr+1);
+  const xpPct=nl?Math.min(((xp-cl.xp)/(nl.xp-cl.xp))*100,100):100;
+  return(<div style={{padding:20,overflowY:"auto",height:"100%",background:"linear-gradient(180deg,#f0f4ff 0%,#fff 30%)"}}>
+    <div style={{textAlign:"center",marginBottom:24}}>
+      <div style={{width:72,height:72,borderRadius:"50%",margin:"0 auto 12px",background:"linear-gradient(135deg,#6366f1,#8b5cf6)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:32,color:"#fff",fontWeight:700,boxShadow:"0 8px 24px rgba(99,102,241,.25)"}}>S</div>
+      <h2 style={{fontFamily:"'Fraunces',serif",fontSize:22,fontWeight:700,color:"#0f172a",margin:"0 0 4px"}}>Student</h2>
+      <p style={{fontSize:13,color:"#64748b",margin:0}}>Learning since Feb 2026</p></div>
+    <div style={{background:"#fff",borderRadius:18,padding:16,marginBottom:16,border:"1px solid #e8edf5",boxShadow:"0 2px 12px rgba(0,0,0,.04)"}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+        <span style={{fontSize:14,fontWeight:700,color:"#0f172a"}}>📊 {cl.n}</span><span style={{fontSize:12,fontWeight:600,color:"#7c3aed"}}>{xp} XP</span></div>
+      <div style={{height:8,background:"#f1f5f9",borderRadius:4,overflow:"hidden"}}><div style={{height:"100%",width:`${xpPct}%`,background:"linear-gradient(90deg,#7c3aed,#6366f1)",borderRadius:4}}/></div>
+      {nl&&<p style={{fontSize:11,color:"#94a3b8",margin:"6px 0 0"}}>{nl.xp-xp} XP to {nl.n}</p>}</div>
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:16}}>
+      {[{l:"Snippets Read",v:rd.size,i:"📖",c:"#2563eb"},{l:"Avg Quiz Score",v:`${avg}%`,i:"🎯",c:"#16a34a"},{l:"Day Streak",v:Math.max(1,Math.floor(rd.size/2)),i:"🔥",c:"#d97706"},{l:"Quizzes Taken",v:vals.length,i:"📝",c:"#7c3aed"}].map((s,i)=>(
+        <div key={i} style={{background:"#fff",borderRadius:16,padding:16,border:"1px solid #e8edf5"}}>
+          <span style={{fontSize:20}}>{s.i}</span><div style={{fontSize:24,fontWeight:700,color:s.c,marginTop:6}}>{s.v}</div>
+          <div style={{fontSize:11,color:"#94a3b8",fontWeight:500,marginTop:2}}>{s.l}</div></div>))}</div>
+    <div style={{background:"#fff",borderRadius:18,padding:16,border:"1px solid #e8edf5"}}>
+      <h3 style={{fontSize:14,fontWeight:700,color:"#0f172a",margin:"0 0 14px"}}>Subject Progress</h3>
+      {S.filter(s=>sel.has(s.id)).map(sub=>{const ss=SN.filter(s=>s.sid===sub.id);const sr=ss.filter(s=>rd.has(s.id)).length;const pct=ss.length?(sr/ss.length)*100:0;
+        return(<div key={sub.id} style={{marginBottom:14}}>
+          <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
+            <span style={{fontSize:13,fontWeight:500,color:"#334155"}}>{sub.emoji} {sub.name}</span>
+            <span style={{fontSize:12,fontWeight:600,color:sub.c}}>{sr}/{ss.length}</span></div>
+          <div style={{height:6,background:"#f1f5f9",borderRadius:3,overflow:"hidden"}}><div style={{height:"100%",width:`${pct}%`,background:sub.c,borderRadius:3}}/></div></div>);})}</div>
+  </div>);
+}
+
+// ══════════════════ ONBOARDING ══════════════════
+function Onboard({sel,toggle,done}){
+  return(<div style={{position:"fixed",inset:0,zIndex:300,background:"#fff",display:"flex",flexDirection:"column",padding:"40px 24px 24px"}}>
+    <div style={{fontSize:40,marginBottom:16}}>📚</div>
+    <h2 style={{fontFamily:"'Fraunces',serif",fontSize:28,fontWeight:800,color:"#0f172a",margin:"0 0 8px"}}>What do you want to learn?</h2>
+    <p style={{fontSize:14,color:"#64748b",margin:"0 0 28px"}}>Pick your subjects. Change anytime from the home screen.</p>
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,flex:1,alignContent:"start"}}>
+      {S.map(sub=>{const a=sel.has(sub.id);return(<button key={sub.id} onClick={()=>toggle(sub.id)} style={{padding:"18px 14px",borderRadius:18,background:a?sub.cl:"#f8fafc",border:a?`2px solid ${sub.c}`:"2px solid #e2e8f0",cursor:"pointer",textAlign:"left",transition:"all .2s",position:"relative"}}>
+        {a&&<div style={{position:"absolute",top:10,right:10,width:22,height:22,borderRadius:"50%",background:sub.c,display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontSize:12,fontWeight:700}}>✓</div>}
+        <span style={{fontSize:30,display:"block",marginBottom:6}}>{sub.emoji}</span>
+        <span style={{fontSize:14,fontWeight:600,color:"#0f172a",display:"block"}}>{sub.name}</span>
+        <span style={{fontSize:11,color:"#94a3b8",display:"block",marginTop:2}}>{sub.desc}</span></button>);})}</div>
+    <button onClick={done} disabled={!sel.size} style={{padding:16,borderRadius:16,width:"100%",background:sel.size?"#0f172a":"#e2e8f0",color:sel.size?"#fff":"#94a3b8",border:"none",fontSize:16,fontWeight:600,cursor:sel.size?"pointer":"default",marginTop:20}}>
+      Start Learning ({sel.size} selected)</button></div>);
+}
+
+// ══════════════════ MAIN APP ══════════════════
+function App(){
+  const[scr,setScr]=useState("onboard");
+  const[tab,setTab]=useState("home");
+  const[sel,setSel]=useState(new Set(["bio","phys","chem"]));
+  const[rd,setRd]=useState(new Set());
+  const[qs,setQs]=useState({});
+  const[xp,setXp]=useState(0);
+  const[gr,setGr]=useState(7);
+  const[ci,setCi]=useState(0);
+  const[qzSn,setQzSn]=useState(null);
+  const[exSn,setExSn]=useState(null);
+  const[sf,setSf]=useState("all");
+
+  const filtered=useMemo(()=>{
+    const b=SN.filter(s=>sel.has(s.sid));
+    return sf==="all"?b:b.filter(s=>s.sid===sf);
+  },[sel,sf]);
+
+  const toggle=id=>{setSel(p=>{const n=new Set(p);n.has(id)?n.delete(id):n.add(id);return n;});};
+
+  useEffect(()=>{if(filtered[ci])setRd(p=>new Set(p).add(filtered[ci].id));},[ci,filtered]);
+
+  const onScroll=useCallback(e=>{const idx=Math.round(e.target.scrollTop/e.target.clientHeight);if(idx!==ci)setCi(idx);},[ci]);
+
+  const qDone=(sid,score)=>{
+    setQs(p=>({...p,[sid]:Math.max(p[sid]||0,score)}));
+    const earned=Math.round(score/100*45);
+    setXp(p=>{const nv=p+earned;const nl=GL.find(g=>g.l===gr+1);if(nl&&nv>=nl.xp)setGr(g=>g+1);return nv;});
+  };
+
+  const goSnippet=sid=>{
+    const sn=gs(sid);if(!sn)return;
+    setSf(sn.sid);setTab("feed");
+    setTimeout(()=>{
+      const idx=SN.filter(s=>s.sid===sn.sid).findIndex(s=>s.id===sid);
+      if(idx>=0)setCi(idx);
+    },50);
+  };
+
+  if(scr==="onboard")return(<div style={{width:"100%",maxWidth:430,margin:"0 auto",height:"100vh",position:"relative"}}><Onboard sel={sel} toggle={toggle} done={()=>setScr("app")}/></div>);
+
+  return(<div style={{width:"100%",maxWidth:430,margin:"0 auto",height:"100vh",position:"relative",display:"flex",flexDirection:"column",background:"#fff",overflow:"hidden"}}>
+    {/* Header */}
+    <div style={{padding:"10px 20px 8px",display:"flex",justifyContent:"space-between",alignItems:"center",background:"#fff",zIndex:10,borderBottom:"1px solid #f1f5f9",flexShrink:0}}>
+      <div style={{fontFamily:"'Fraunces',serif",fontSize:20,fontWeight:800,color:"#0f172a",display:"flex",alignItems:"center",gap:4}}>
+        <span style={{background:"linear-gradient(135deg,#6366f1,#8b5cf6)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>Snip</span><span>Learn</span></div>
+      <div style={{display:"flex",alignItems:"center",gap:8}}>
+        <div style={{display:"flex",alignItems:"center",gap:4,background:"#fef3c7",padding:"4px 10px",borderRadius:12,fontSize:11,fontWeight:700,color:"#d97706"}}>🔥 {Math.max(1,Math.floor(rd.size/2))}</div>
+        <div style={{display:"flex",alignItems:"center",gap:4,background:"#ede9fe",padding:"4px 10px",borderRadius:12,fontSize:11,fontWeight:700,color:"#7c3aed"}}>⚡ {xp}</div></div></div>
+    {/* Content */}
+    <div style={{flex:1,overflow:"hidden",position:"relative",display:"flex",flexDirection:"column"}}>
+      {tab==="home"&&<div style={{flex:1,overflow:"hidden"}}><Home sel={sel} setSel={setSel} rd={rd} qs={qs} xp={xp} gr={gr} goTab={setTab}/></div>}
+      {tab==="feed"&&(<>
+        <div style={{display:"flex",gap:6,padding:"10px 20px",overflowX:"auto",background:"#fff",zIndex:5,position:"relative",flexShrink:0}}>
+          <button onClick={()=>{setSf("all");setCi(0);}} style={{padding:"6px 14px",borderRadius:20,fontSize:12,fontWeight:600,border:"none",cursor:"pointer",whiteSpace:"nowrap",background:sf==="all"?"#0f172a":"#f1f5f9",color:sf==="all"?"#fff":"#64748b"}}>All</button>
+          {S.filter(s=>sel.has(s.id)).map(sub=>(<button key={sub.id} onClick={()=>{setSf(sub.id);setCi(0);}} style={{padding:"6px 14px",borderRadius:20,fontSize:12,fontWeight:600,border:"none",cursor:"pointer",whiteSpace:"nowrap",background:sf===sub.id?sub.c:"#f1f5f9",color:sf===sub.id?"#fff":"#64748b"}}>{sub.emoji} {sub.name}</button>))}</div>
+        <div onScroll={onScroll} style={{height:"calc(100% - 42px)",overflowY:"auto",scrollSnapType:"y mandatory"}}>
+          {filtered.length===0?(<div style={{height:"100%",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:32,textAlign:"center"}}>
+            <span style={{fontSize:48,marginBottom:16}}>📭</span><h3 style={{fontFamily:"'Fraunces',serif",fontSize:20,fontWeight:700,color:"#0f172a",margin:"0 0 8px"}}>No snippets</h3>
+            <p style={{fontSize:14,color:"#64748b"}}>Select subjects from Home to start.</p></div>
+          ):filtered.map((sn,idx)=>{const sub=gsu(sn.sid);return(<div key={sn.id} style={{height:"100%",scrollSnapAlign:"start",flexShrink:0}}>
+            <Card sn={sn} sub={sub} rd={rd} onQ={()=>setQzSn(sn)} onE={()=>setExSn(sn)}/></div>);})}</div></>)}
+      {tab==="paths"&&<div style={{flex:1,overflow:"hidden",height:"100%",position:"relative"}}><PathsTab rd={rd} qs={qs} goSnippet={goSnippet}/></div>}
+      {tab==="profile"&&<div style={{flex:1,overflow:"hidden",height:"100%",position:"relative"}}><Profile rd={rd} xp={xp} gr={gr} qs={qs} sel={sel}/></div>}
+    </div>
+    {/* Nav */}
+    <div style={{display:"flex",borderTop:"1px solid #f1f5f9",background:"#fff",padding:"6px 0 10px",zIndex:10,flexShrink:0}}>
+      {[{id:"home",i:"🏠",l:"Home"},{id:"feed",i:"📚",l:"Feed"},{id:"paths",i:"🗺️",l:"Paths"},{id:"profile",i:"👤",l:"Profile"}].map(t=>(
+        <button key={t.id} onClick={()=>setTab(t.id)} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:2,background:"none",border:"none",cursor:"pointer",padding:"6px 0"}}>
+          <span style={{fontSize:20,opacity:tab===t.id?1:.4,transition:"opacity .2s"}}>{t.i}</span>
+          <span style={{fontSize:10,fontWeight:tab===t.id?700:500,color:tab===t.id?"#0f172a":"#94a3b8"}}>{t.l}</span></button>))}</div>
+    {/* Overlays */}
+    {qzSn&&<Quiz sn={qzSn} sub={gsu(qzSn.sid)} onClose={()=>setQzSn(null)} onDone={sc=>{qDone(qzSn.id,sc);setQzSn(null);}}/>}
+    {exSn&&<Explain sn={exSn} sub={gsu(exSn.sid)} onClose={()=>setExSn(null)}/>}
+  </div>);
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>

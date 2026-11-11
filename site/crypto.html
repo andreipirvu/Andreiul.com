@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌤️ Criptare Meteo Sibiu</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 800px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-style: italic;
+        }
+
+        .weather-display {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .weather-item {
+            text-align: center;
+            padding: 10px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
+        }
+
+        .weather-item .label {
+            font-size: 0.9em;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+
+        .weather-item .value {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        .date-selector {
+            margin-bottom: 20px;
+        }
+
+        .date-selector label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .date-selector select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            font-size: 16px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .date-selector select:hover {
+            border-color: #764ba2;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .input-group textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+            min-height: 100px;
+            transition: border-color 0.3s;
+        }
+
+        .input-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: white;
+        }
+
+        .btn-encrypt {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .btn-decrypt {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .btn-copy {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .info-box {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .info-box h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .info-box p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #43e97b;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+
+        .calculations {
+            background: #f8f9fa;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .calculations h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .calc-step {
+            background: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border-left: 4px solid #f5576c;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+
+        .calc-step.key-gen {
+            border-left-color: #43e97b;
+        }
+
+        .calc-step .step-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 8px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .calc-step .formula {
+            color: #667eea;
+            margin: 5px 0;
+            padding-left: 10px;
+        }
+
+        .calc-step .result {
+            color: #f5576c;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .calc-char {
+            background: #fff;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+        }
+
+        .calc-char .char-info {
+            color: #666;
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+
+        .toggle-calc {
+            background: linear-gradient(135deg, #ffa726 0%, #fb8c00 100%);
+            margin-top: 10px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 1.8em;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .calculations {
+                max-height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌤️ Criptare Meteo Sibiu</h1>
+        <p class="subtitle">Algoritmul secret bazat pe vremea din Sibiu!</p>
+
+        <div class="date-selector">
+            <label>📅 Selectează ziua din Sibiu:</label>
+            <select id="dateSelect" onchange="updateWeather()">
+                <option value="0">Luni - 3 Februarie 2026</option>
+                <option value="1">Marți - 4 Februarie 2026</option>
+                <option value="2">Miercuri - 5 Februarie 2026</option>
+                <option value="3" selected>Joi - 6 Februarie 2026 (azi)</option>
+                <option value="4">Vineri - 7 Februarie 2026</option>
+            </select>
+        </div>
+
+        <div class="weather-display" id="weatherDisplay">
+            <div class="weather-item">
+                <div class="label">🌡️ Temperatură</div>
+                <div class="value" id="temp">-2°C</div>
+            </div>
+            <div class="weather-item">
+                <div class="label">💧 Umiditate</div>
+                <div class="value" id="humidity">78%</div>
+            </div>
+            <div class="weather-item">
+                <div class="label">💨 Vânt</div>
+                <div class="value" id="wind">12 km/h</div>
+            </div>
+            <div class="weather-item">
+                <div class="label">☁️ Stare</div>
+                <div class="value" id="condition">Noros</div>
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label>✍️ Textul tău:</label>
+            <textarea id="inputText" placeholder="Scrie mesajul pe care vrei să-l criptezi..."></textarea>
+        </div>
+
+        <div class="button-group">
+            <button class="btn-encrypt" onclick="encrypt()">🔒 Criptează</button>
+            <button class="btn-decrypt" onclick="decrypt()">🔓 Decriptează</button>
+            <button class="btn-copy" onclick="copyResult()">📋 Copiază</button>
+        </div>
+
+        <div class="input-group">
+            <label>🎯 Rezultat:</label>
+            <textarea id="outputText" placeholder="Rezultatul va apărea aici..." readonly></textarea>
+        </div>
+
+        <button class="toggle-calc" onclick="toggleCalculations()">🧮 Arată/Ascunde Calculele Matematice</button>
+
+        <div class="calculations" id="calculations" style="display: none;">
+            <h3>🔢 Calcule Matematice Detaliate</h3>
+            <div id="calculationSteps"></div>
+        </div>
+
+        <div class="info-box">
+            <h3>🔐 Cum funcționează?</h3>
+            <p>
+                <strong>Algoritmul "Sibiu Weather Cipher"</strong> folosește datele meteo reale ca și cheie de criptare:
+            </p>
+            <ul style="margin-top: 10px; margin-left: 20px; color: #666; line-height: 1.8;">
+                <li><strong>Temperatura</strong> → Offset pentru Caesar cipher</li>
+                <li><strong>Umiditatea</strong> → Număr de rotații ale caracterelor</li>
+                <li><strong>Vântul</strong> → Seed pentru XOR encryption</li>
+                <li><strong>Starea</strong> → Pattern de substituție</li>
+            </ul>
+            <p style="margin-top: 15px;">
+                Pentru a decripta un mesaj, trebuie să știi exact vremea din ziua respectivă! 🌦️
+            </p>
+        </div>
+    </div>
+
+    <div class="toast" id="toast">Copiat în clipboard! ✓</div>
+
+    <script>
+        // Date meteo simulate pentru Sibiu (ultimele 5 zile)
+        const weatherData = [
+            { date: "Luni - 3 Februarie 2026", temp: -5, humidity: 85, wind: 8, condition: "Zăpadă" },
+            { date: "Marți - 4 Februarie 2026", temp: -3, humidity: 82, wind: 10, condition: "Noros" },
+            { date: "Miercuri - 5 Februarie 2026", temp: -1, humidity: 75, wind: 15, condition: "Parțial înnorat" },
+            { date: "Joi - 6 Februarie 2026 (azi)", temp: -2, humidity: 78, wind: 12, condition: "Noros" },
+            { date: "Vineri - 7 Februarie 2026", temp: 1, humidity: 70, wind: 18, condition: "Senin" }
+        ];
+
+        let currentWeather = weatherData[3]; // Default la ziua curentă
+        let calculationLog = [];
+
+        function updateWeather() {
+            const selectedIndex = document.getElementById('dateSelect').value;
+            currentWeather = weatherData[selectedIndex];
+            
+            document.getElementById('temp').textContent = currentWeather.temp + '°C';
+            document.getElementById('humidity').textContent = currentWeather.humidity + '%';
+            document.getElementById('wind').textContent = currentWeather.wind + ' km/h';
+            document.getElementById('condition').textContent = currentWeather.condition;
+        }
+
+        function generateWeatherKey() {
+            calculationLog = [];
+            
+            // Creăm o cheie complexă bazată pe toate datele meteo
+            const temp = currentWeather.temp + 100; // Facem pozitiv pentru calcule
+            const humidity = currentWeather.humidity;
+            const wind = currentWeather.wind;
+            const conditionCode = currentWeather.condition.length;
+            
+            calculationLog.push({
+                type: 'key-gen',
+                title: '🔑 Generare Cheie de Criptare',
+                steps: [
+                    `📊 Date meteo pentru ${currentWeather.date}:`,
+                    `   Temperatură: ${currentWeather.temp}°C`,
+                    `   Umiditate: ${humidity}%`,
+                    `   Vânt: ${wind} km/h`,
+                    `   Condiție: "${currentWeather.condition}"`,
+                    ``,
+                    `🔢 Calcule cheie:`,
+                    `   temp_adjusted = ${currentWeather.temp} + 100 = ${temp}`,
+                    `   caesarShift = ${temp} % 26 = ${temp % 26}`,
+                    `   xorKey = (${wind} × ${humidity}) % 256 = ${(wind * humidity)} % 256 = ${(wind * humidity) % 256}`,
+                    `   rotations = ${humidity} % 10 = ${humidity % 10}`,
+                    `   substitutionPattern = len("${currentWeather.condition}") = ${conditionCode}`
+                ]
+            });
+            
+            return {
+                caesarShift: temp % 26,
+                xorKey: (wind * humidity) % 256,
+                rotations: humidity % 10,
+                substitutionPattern: conditionCode
+            };
+        }
+
+        function addCharCalculation(char, index, operations, isEncrypt) {
+            const type = isEncrypt ? 'Criptare' : 'Decriptare';
+            calculationLog.push({
+                type: 'char',
+                title: `${type} caracter #${index + 1}: '${char}' (ASCII: ${char.charCodeAt(0)})`,
+                steps: operations
+            });
+        }
+
+        function displayCalculations() {
+            const container = document.getElementById('calculationSteps');
+            container.innerHTML = '';
+            
+            calculationLog.forEach((log, idx) => {
+                const stepDiv = document.createElement('div');
+                stepDiv.className = `calc-step ${log.type === 'key-gen' ? 'key-gen' : ''}`;
+                
+                const title = document.createElement('div');
+                title.className = 'step-title';
+                title.textContent = log.title;
+                stepDiv.appendChild(title);
+                
+                log.steps.forEach(step => {
+                    const stepLine = document.createElement('div');
+                    stepLine.className = 'formula';
+                    stepLine.textContent = step;
+                    stepDiv.appendChild(stepLine);
+                });
+                
+                container.appendChild(stepDiv);
+            });
+        }
+
+        function toggleCalculations() {
+            const calcDiv = document.getElementById('calculations');
+            if (calcDiv.style.display === 'none') {
+                calcDiv.style.display = 'block';
+                calcDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            } else {
+                calcDiv.style.display = 'none';
+            }
+        }
+
+        function encrypt() {
+            const input = document.getElementById('inputText').value;
+            if (!input) {
+                alert('Te rog introdu un text pentru criptare!');
+                return;
+            }
+
+            const key = generateWeatherKey();
+            let encrypted = '';
+
+            for (let i = 0; i < input.length; i++) {
+                let char = input[i];
+                let code = char.charCodeAt(0);
+                const originalCode = code;
+                let operations = [];
+
+                operations.push(`📍 Poziție în text: ${i + 1}`);
+                operations.push(`🔤 Caracter original: '${char}' → ASCII: ${code}`);
+                operations.push(``);
+
+                // Pas 1: Caesar cipher bazat pe temperatură
+                const step1 = (code + key.caesarShift) % 256;
+                operations.push(`✅ PAS 1 - Caesar Cipher (shift cu temperatura):`);
+                operations.push(`   Formula: (${code} + ${key.caesarShift}) % 256`);
+                operations.push(`   Calcul: ${code + key.caesarShift} % 256 = ${step1}`);
+                code = step1;
+                operations.push(``);
+
+                // Pas 2: XOR cu cheia bazată pe vânt și umiditate
+                const step2 = code ^ key.xorKey;
+                operations.push(`✅ PAS 2 - XOR Encryption (vânt × umiditate):`);
+                operations.push(`   Formula: ${code} XOR ${key.xorKey}`);
+                operations.push(`   Binary: ${code.toString(2).padStart(8, '0')} XOR ${key.xorKey.toString(2).padStart(8, '0')}`);
+                operations.push(`   Rezultat: ${step2.toString(2).padStart(8, '0')} = ${step2}`);
+                code = step2;
+                operations.push(``);
+
+                // Pas 3: Rotație bazată pe umiditate
+                const step3 = ((code << key.rotations) | (code >> (8 - key.rotations))) & 0xFF;
+                operations.push(`✅ PAS 3 - Bit Rotation (rotații bazate pe umiditate):`);
+                operations.push(`   Rotăm ${code} cu ${key.rotations} poziții la stânga`);
+                operations.push(`   Binary înainte: ${code.toString(2).padStart(8, '0')}`);
+                operations.push(`   Binary după:   ${step3.toString(2).padStart(8, '0')} = ${step3}`);
+                code = step3;
+                operations.push(``);
+
+                // Pas 4: Substituție bazată pe condiția meteo
+                const step4 = (code + key.substitutionPattern * (i % 3)) % 256;
+                operations.push(`✅ PAS 4 - Substituție (pattern meteo):`);
+                operations.push(`   Formula: (${code} + ${key.substitutionPattern} × (${i} % 3)) % 256`);
+                operations.push(`   Calcul: (${code} + ${key.substitutionPattern} × ${i % 3}) % 256`);
+                operations.push(`   = (${code} + ${key.substitutionPattern * (i % 3)}) % 256 = ${step4}`);
+                code = step4;
+                operations.push(``);
+
+                operations.push(`🎯 REZULTAT FINAL:`);
+                operations.push(`   '${char}' (${originalCode}) → ${code} → '${String.fromCharCode(code)}'`);
+
+                addCharCalculation(char, i, operations, true);
+                encrypted += String.fromCharCode(code);
+            }
+
+            // Convertim la Base64 pentru afișare
+            const base64 = btoa(encrypted);
+            document.getElementById('outputText').value = base64;
+            
+            calculationLog.push({
+                type: 'final',
+                title: '📦 Conversie finală în Base64',
+                steps: [
+                    `Text criptat (raw): "${encrypted}"`,
+                    `Text criptat (Base64): "${base64}"`,
+                    ``,
+                    `✅ Criptare completă! ${input.length} caractere procesate.`
+                ]
+            });
+            
+            displayCalculations();
+            document.getElementById('calculations').style.display = 'block';
+        }
+
+        function decrypt() {
+            const input = document.getElementById('inputText').value;
+            if (!input) {
+                alert('Te rog introdu un text pentru decriptare!');
+                return;
+            }
+
+            try {
+                // Decodăm din Base64
+                const encrypted = atob(input);
+                const key = generateWeatherKey();
+                
+                calculationLog.push({
+                    type: 'final',
+                    title: '📦 Decodare din Base64',
+                    steps: [
+                        `Text Base64: "${input}"`,
+                        `Text criptat (raw): "${encrypted}"`,
+                        `Lungime: ${encrypted.length} caractere`,
+                        ``
+                    ]
+                });
+                
+                let decrypted = '';
+
+                for (let i = 0; i < encrypted.length; i++) {
+                    let code = encrypted.charCodeAt(i);
+                    const originalCode = code;
+                    let operations = [];
+
+                    operations.push(`📍 Poziție în text: ${i + 1}`);
+                    operations.push(`🔤 Caracter criptat: ASCII ${code}`);
+                    operations.push(``);
+
+                    // Inversăm pasul 4
+                    const step4 = (code - key.substitutionPattern * (i % 3) + 256) % 256;
+                    operations.push(`🔄 PAS 4 INVERS - Substituție (pattern meteo):`);
+                    operations.push(`   Formula: (${code} - ${key.substitutionPattern} × (${i} % 3) + 256) % 256`);
+                    operations.push(`   Calcul: (${code} - ${key.substitutionPattern * (i % 3)} + 256) % 256`);
+                    operations.push(`   = ${(code - key.substitutionPattern * (i % 3) + 256)} % 256 = ${step4}`);
+                    code = step4;
+                    operations.push(``);
+
+                    // Inversăm pasul 3 (rotație)
+                    const step3 = ((code >> key.rotations) | (code << (8 - key.rotations))) & 0xFF;
+                    operations.push(`🔄 PAS 3 INVERS - Bit Rotation:`);
+                    operations.push(`   Rotăm ${code} cu ${key.rotations} poziții la dreapta`);
+                    operations.push(`   Binary înainte: ${code.toString(2).padStart(8, '0')}`);
+                    operations.push(`   Binary după:   ${step3.toString(2).padStart(8, '0')} = ${step3}`);
+                    code = step3;
+                    operations.push(``);
+
+                    // Inversăm pasul 2 (XOR e reversibil)
+                    const step2 = code ^ key.xorKey;
+                    operations.push(`🔄 PAS 2 INVERS - XOR Decryption:`);
+                    operations.push(`   Formula: ${code} XOR ${key.xorKey} (XOR este reversibil)`);
+                    operations.push(`   Binary: ${code.toString(2).padStart(8, '0')} XOR ${key.xorKey.toString(2).padStart(8, '0')}`);
+                    operations.push(`   Rezultat: ${step2.toString(2).padStart(8, '0')} = ${step2}`);
+                    code = step2;
+                    operations.push(``);
+
+                    // Inversăm pasul 1
+                    const step1 = (code - key.caesarShift + 256) % 256;
+                    operations.push(`🔄 PAS 1 INVERS - Caesar Cipher:`);
+                    operations.push(`   Formula: (${code} - ${key.caesarShift} + 256) % 256`);
+                    operations.push(`   Calcul: ${code - key.caesarShift + 256} % 256 = ${step1}`);
+                    code = step1;
+                    operations.push(``);
+
+                    const finalChar = String.fromCharCode(code);
+                    operations.push(`🎯 REZULTAT FINAL:`);
+                    operations.push(`   ${originalCode} → ${code} → '${finalChar}'`);
+
+                    addCharCalculation(`?`, i, operations, false);
+                    decrypted += finalChar;
+                }
+
+                document.getElementById('outputText').value = decrypted;
+                
+                calculationLog.push({
+                    type: 'final',
+                    title: '✅ Decriptare Completă',
+                    steps: [
+                        `Text decriptat: "${decrypted}"`,
+                        ``,
+                        `✅ ${encrypted.length} caractere procesate cu succes!`
+                    ]
+                });
+                
+                displayCalculations();
+                document.getElementById('calculations').style.display = 'block';
+            } catch (e) {
+                alert('Eroare la decriptare! Verifică dacă ai selectat ziua corectă și dacă textul este valid.');
+            }
+        }
+
+        function copyResult() {
+            const output = document.getElementById('outputText');
+            if (!output.value) {
+                alert('Nu există nimic de copiat!');
+                return;
+            }
+
+            output.select();
+            document.execCommand('copy');
+            
+            const toast = document.getElementById('toast');
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2000);
+        }
+
+        // Inițializare
+        updateWeather();
+    </script>
+</body>
+</html>
