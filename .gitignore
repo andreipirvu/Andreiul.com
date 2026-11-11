@@ -1,0 +1,29 @@
+# Environment files and secrets, at any depth (R-02).
+# "*.env" also covers names like aws.env or creds.env, which ".env" alone misses.
+.env
+.env.*
+*.env
+!.env.example
+secrets/
+*.secret
+
+# Private keys and certificates
+*.key
+*.pem
+*.p12
+*.pfx
+id_rsa*
+id_ed25519*
+certs/
+
+# Claude Code per-user settings
+.claude/settings.local.json
+
+# OS and editor clutter
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.swp
+*~
