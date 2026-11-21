@@ -24,5 +24,11 @@ Settings → Rules → Rulesets → New branch ruleset:
 - Bifează: Restrict deletions, Block force pushes, Require a pull request before merging,
   Require status checks to pass (`secret scan`, `site checks`, `nginx config test`, `workflow lint`)
 
+Settings → Actions → General:
+- Actions permissions: bifează „Require actions to be pinned to a full-length commit SHA”
+- Workflow permissions: „Read repository contents and packages permissions”; debifează
+  „Allow GitHub Actions to create and approve pull requests”
+- Fork pull request workflows: „Require approval for all external contributors”
+
 Settings → Code security: activează Private vulnerability reporting, Secret scanning
 și Push protection (gratuite pentru repository-uri publice).
