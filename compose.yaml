@@ -47,5 +47,18 @@ services:
     depends_on:
       - opensearch-dashboards
 
+  # Lab 5: normalisation and enrichment. The image comes from .env, pinned by digest.
+  logstash:
+    image: ${LOGSTASH_IMAGE:?set LOGSTASH_IMAGE in .env (see .env.example)}
+    environment:
+      OPENSEARCH_INITIAL_ADMIN_PASSWORD: ${OPENSEARCH_INITIAL_ADMIN_PASSWORD}
+      LS_JAVA_OPTS: -Xms512m -Xmx512m
+    volumes:
+      - ./pipelines:/usr/share/logstash/pipeline:ro
+      - ./data:/data:ro
+    depends_on:
+      opensearch:
+        condition: service_healthy
+
 volumes:
   opensearch-data:
