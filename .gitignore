@@ -4,10 +4,13 @@
 .env.*
 *.env
 !.env.example
-secrets/
+# secrets/ holds SOPS ciphertext, which IS committed; anything else in it is not.
+secrets/*
+!secrets/*.enc.yaml
 *.secret
 
-# Private keys and certificates
+# Private keys and certificates (the age key lives in ~/.config/sops/age/, never here)
+keys.txt
 *.key
 *.pem
 *.p12
@@ -27,3 +30,9 @@ desktop.ini
 .idea/
 *.swp
 *~
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/

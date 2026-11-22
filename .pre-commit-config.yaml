@@ -1,4 +1,4 @@
-# Local guardrails, run on every commit (R-01, R-02, R-03).
+# Local guardrails, run on every commit (R-01, R-02, R-10).
 # Install once per clone:  pip install pre-commit && pre-commit install
 # CI runs gitleaks again, because a local hook can be skipped with --no-verify.
 repos:

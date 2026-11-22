@@ -1,7 +1,7 @@
 # /etc/nginx/sites-available/andreiul  (enabled via sites-enabled/andreiul)
 #
 # Mirrors the live server file as of 2026-11-11, with security changes only in the
-# andreiul.com / www block (R-05, R-08). The jobs.andreiul.com blocks and the
+# andreiul.com / www block (R-11, R-13). The jobs.andreiul.com blocks and the
 # certbot-managed lines are unchanged. birds.andreiul.com lives in its own file and is
 # not touched. server_tokens is set once, globally, in conf.d/security.conf.
 
@@ -11,7 +11,7 @@ server {
     index index.html;
 
     # NexusJobs sits inside this webroot. jobs.andreiul.com serves it through its own
-    # root and alias, so nothing under /nexusjobs/ may be served from here (R-08).
+    # root and alias, so nothing under /nexusjobs/ may be served from here (R-13).
     location ^~ /nexusjobs/ { return 404; }
 
     # No dotfiles (.git, .env, editor backups), except /.well-known/.

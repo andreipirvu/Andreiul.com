@@ -14,8 +14,8 @@ Răspund de obicei în câteva zile. Te rog să nu faci public problema până n
 - Secretele nu se comit niciodată, nici măcar temporar (R-02). gitleaks le blochează la
   commit și în CI. Un secret ajuns în istoric se consideră compromis și se revocă, nu doar se șterge.
 - Orice modificare ajunge pe `main` doar prin pull request cu CI trecut (R-01).
-- Scripturile externe se încarcă doar cu Subresource Integrity (R-03).
-- Acțiunile GitHub sunt fixate pe SHA complet (R-07).
+- Scripturile externe se încarcă doar cu Subresource Integrity (R-10).
+- Acțiunile GitHub sunt fixate pe SHA complet (R-08).
 
 ## Configurare GitHub (o singură dată)
 

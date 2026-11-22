@@ -37,3 +37,15 @@ Pentru lucru local: `pip install pre-commit && pre-commit install`.
 ## Istoric
 
 Versiunile anterioare (Dad Joke Generator) rămân în istoricul git.
+
+## Module 4A project
+
+The same repository holds my security telemetry project, built lab by lab from
+[secops-demo](https://github.com/cybrd0ne/secops-demo). The stack (OpenSearch, Dashboards,
+an nginx TLS front door, later Logstash and MISP) runs locally with Docker and never on
+the production server. Risks and controls: [`RISK-REGISTER.md`](RISK-REGISTER.md).
+Windows setup: [`docs/setup-windows.md`](docs/setup-windows.md).
+
+| Lab | Topic | Main files |
+|-----|-------|------------|
+| 3 | Infrastructure as code, SOPS secrets, lab PKI | `compose.yaml`, `Makefile`, `nginx/`, `scripts/init-secrets.sh` |

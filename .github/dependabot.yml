@@ -1,4 +1,4 @@
-# Keep the pinned action SHAs current (R-07). Dependabot opens a PR per update,
+# Keep the pinned action SHAs current (R-08). Dependabot opens a PR per update,
 # with the new SHA and the tag in the comment.
 # The cooldown holds every new release back for 7 days: a compromised release is
 # usually caught and pulled within days, before it reaches this repository.
