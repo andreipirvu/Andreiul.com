@@ -1,0 +1,43 @@
+# cosign verify ghcr.io/andreipirvu/andreiul.com/frontdoor:v0.4.0
+[
+  {
+    "critical": {
+      "identity": {
+        "docker-reference": "ghcr.io/andreipirvu/andreiul.com/frontdoor:v0.4.0"
+      },
+      "image": {
+        "docker-manifest-digest": "sha256:fe72932ce7b59ba064f89bb23fb8f9b1779e372047f0b252fa794c8d79cd85cb"
+      },
+      "type": "https://sigstore.dev/cosign/sign/v1"
+    },
+    "optional": {}
+  }
+]
+
+# gh release view v0.4.0
+title:	v0.4.0
+tag:	v0.4.0
+draft:	false
+prerelease:	false
+immutable:	false
+author:	github-actions[bot]
+created:	2026-11-22T20:39:16Z
+published:	2026-11-22T20:46:36Z
+url:	https://github.com/andreipirvu/Andreiul.com/releases/tag/v0.4.0
+asset:	sbom.spdx.json
+--
+## What's Changed
+* Update repo to the live andreiul.com site (Nov 2026) by @andreipirvu in https://github.com/andreipirvu/Andreiul.com/pull/1
+* Add security baseline adapted from secops-demo (R-01..R-07) by @andreipirvu in https://github.com/andreipirvu/Andreiul.com/pull/2
+* Match nginx config to the live server; record the .env incident (R-04… by @andreipirvu in https://github.com/andreipirvu/Andreiul.com/pull/4
+* Cache-bust main.js and force LF line endings by @andreipirvu in https://github.com/andreipirvu/Andreiul.com/pull/5
+* Bump gitleaks/gitleaks-action from 2.3.9 to 3.0.0 in the actions group across 1 directory by @dependabot[bot] in https://github.com/andreipirvu/Andreiul.com/pull/3
+* ci: Dependabot cooldown, zizmor over the whole repo (R-07) by @andreipirvu in https://github.com/andreipirvu/Andreiul.com/pull/6
+* Lab 3: infrastructure as code (R-02, R-05) by @andreipirvu in https://github.com/andreipirvu/Andreiul.com/pull/7
+* Lab 4: pinned pipeline with scan, SBOM, signing and release (R-01, R-08, R-09) by @andreipirvu in https://github.com/andreipirvu/Andreiul.com/pull/8
+
+## New Contributors
+* @andreipirvu made their first contribution in https://github.com/andreipirvu/Andreiul.com/pull/1
+* @dependabot[bot] made their first contribution in https://github.com/andreipirvu/Andreiul.com/pull/3
+
+**Full Changelog**: https://github.com/andreipirvu/Andreiul.com/commits/v0.4.0
