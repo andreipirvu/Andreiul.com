@@ -35,12 +35,16 @@ if [ -f "$OUT" ] && [ "${1:-}" != "--force" ]; then
   exit 0
 fi
 echo "OpenSearch admin password: 12+ characters, upper and lower case, a digit and one"
-echo "of ! @ % ^ * - _ + = . Avoid \$, #, quotes, spaces and colons."
+echo "of ! @ % ^ * - _ + = . Avoid \$, #, quotes, spaces, colons and the word 'admin'."
 mkdir -p secrets
 read -rsp 'Admin password: ' OS_PW; echo
 read -rsp 'Repeat:         ' OS_PW2; echo
 [ "$OS_PW" = "$OS_PW2" ] || { unset OS_PW OS_PW2; echo "Passwords differ."; exit 1; }
 [ "${#OS_PW}" -ge 12 ] || { unset OS_PW OS_PW2; echo "Too short."; exit 1; }
+# OpenSearch refuses a password that resembles the user name and then quits at start-up.
+case "$(printf '%s' "$OS_PW" | tr '[:upper:]' '[:lower:]')" in
+  *admin*) unset OS_PW OS_PW2; echo "OpenSearch rejects passwords containing 'admin'. Choose another."; exit 1 ;;
+esac
 TMP="$(mktemp secrets/.enc.XXXXXX)"
 printf 'OPENSEARCH_INITIAL_ADMIN_PASSWORD: %s\n' "$OS_PW" \
   | sops --encrypt --filename-override "$OUT" --input-type yaml --output-type yaml /dev/stdin > "$TMP"
