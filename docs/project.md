@@ -115,10 +115,44 @@ a few suspicious behaviours mixed in, deterministic so that results are reproduc
 `--list` option names what was mixed in. On that day the DNS TXT rule finds exactly the six
 tunnelling answers and none of the 35 benign DKIM answers in the background.
 
-### My own rule (Part F)
+### My own rule (Part F): legacy Internet Explorer user agent posting data
 
-To be completed by me: technique, ATT&CK tag, the ECS mapping it needs, samples with a
-realistic near miss, rule test and pipeline test.
+**Technique.** T1071.001, application layer protocol over the web. In the synthetic day,
+host `10.0.0.12` sends 40 requests with `Mozilla/4.0 (compatible; MSIE 6.0; Win32)`,
+always `POST`, always to the bare IP `203.0.113.66`, to `/b/` plus a random hex ID, exactly
+every five minutes. Every other host uses one of three current browsers (Chrome 131,
+Safari 18.1, Firefox 132) and makes 1 to 7 requests over the whole day.
+
+**Design.** The rule fires on an Internet Explorer 6, 7 or 8 user agent **and** the `POST`
+method. No supported browser has sent those strings for more than a decade, while C2
+implants often hardcode them; requiring `POST` keeps old clients that only read pages out
+of the alerts. The rule does not require the bare-IP destination, so the beacon is still
+caught if it moves to a domain name. The destination and the five-minute interval go into
+the description for the analyst: a single Sigma rule cannot measure time between events.
+
+**Near misses (negative sample).**
+
+| Record | Fails on | Why it is realistic |
+|--------|----------|---------------------|
+| MSIE 6.0, `GET` to `intranet.example.com` | method | Old intranet tools still report IE 6 |
+| Chrome 131, `POST` to `192.168.1.1/cgi-bin/login` | user agent | A router admin login posts to a bare IP |
+
+**Mapping first.** The pipeline already mapped HTTP to ECS (`user_agent.original`,
+`http.request.method`, `url.domain`, `url.original`), but the index template did not: the
+user agent would have been analysed text, and a wildcard such as `*MSIE\ 6.0*` does not
+match whole values there. The template now maps these fields as `keyword`.
+
+| File | Content |
+|------|---------|
+| `detections/sigma/http_legacy_ie_post.yml` | the rule |
+| `detections/opensearch/http_legacy_ie_post.json` | the converted query |
+| `tests/samples/make_http_samples.py` and `*_http_ie_post_*.json` | positive and negative samples |
+| `tests/test_sigma_http_ie_post.py` | rule tests and the converted-query check |
+| `tests/test_suricata_ecs.py` | the same samples through the real Logstash |
+
+**Result.** 26 tests pass. On the synthetic day in OpenSearch the rule returns exactly 40
+hits out of 2533 events, all from `10.0.0.12` to `203.0.113.66`; none of the 227 ordinary
+HTTP requests matches.
 
 ## Lab 6: threat intelligence (R-04, R-05)
 

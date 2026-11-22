@@ -68,3 +68,20 @@ def test_clean_destination_is_untouched():
     (ev,) = run_pipeline(ROOT / "tests/samples/eve_flow_ioc_negative.json")
     assert "threat" not in ev
     assert "threat_match" not in ev.get("tags", [])
+
+
+# My own rule (Lab 5 Part F): the same chain for HTTP, raw Suricata -> Logstash -> rule.
+HTTP_RULE = ROOT / "detections/sigma/http_legacy_ie_post.yml"
+
+
+def test_http_beacon_maps_to_ecs_and_fires_my_rule():
+    (ev,) = run_pipeline(ROOT / "tests/samples/eve_http_ie_post_positive.json")
+    assert ev["user_agent"]["original"].startswith("Mozilla/4.0 (compatible; MSIE 6.0")
+    assert ev["http"]["request"]["method"] == "POST"
+    assert ev["url"]["domain"] == "203.0.113.66"
+    assert rule_matches(HTTP_RULE, ev)
+
+
+def test_http_near_misses_stay_quiet_after_the_pipeline():
+    events = run_pipeline(ROOT / "tests/samples/eve_http_ie_post_negative.json")
+    assert len(events) == 2 and not any(rule_matches(HTTP_RULE, ev) for ev in events)
