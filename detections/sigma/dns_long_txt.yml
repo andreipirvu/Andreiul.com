@@ -1,0 +1,24 @@
+title: Long DNS TXT answer
+id: 7f68cfd5-8fa6-4294-aab3-61595cbaa4c7
+status: experimental
+description: A DNS TXT answer of 200 characters or more, a common carrier for C2 commands or exfiltrated data.
+references:
+  - https://attack.mitre.org/techniques/T1071/004/
+author: Andrei Pirvu
+date: 2026-11-22
+tags:
+  - attack.command-and-control
+  - attack.t1071.004
+logsource:
+  product: suricata
+  service: dns
+detection:
+  answer:
+    dns.type: answer
+    dns.answers.type: TXT
+  long_data:
+    dns.answers.data|re: '.{200,}'
+  condition: answer and long_data
+falsepositives:
+  - Domain-verification and long SPF TXT records on mail and SaaS domains
+level: medium
