@@ -34,10 +34,6 @@ Fiecare răspunde unui risc din [`RISK-REGISTER.md`](RISK-REGISTER.md).
 
 Pentru lucru local: `pip install pre-commit && pre-commit install`.
 
-## Istoric
-
-Versiunile anterioare (Dad Joke Generator) rămân în istoricul git.
-
 ## Module 4A project
 
 The same repository holds my security telemetry project, built lab by lab from

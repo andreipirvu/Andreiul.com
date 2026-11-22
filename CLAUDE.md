@@ -5,7 +5,7 @@ www.andreiul.com and my Module 4A security telemetry project (labs 3 to 7).
 ## Website (site/, deploy/)
 - The site is static HTML, CSS and JavaScript in `site/`, with no build step. Add no frameworks or dependencies.
 - The server's nginx config lives in `deploy/nginx/`. Run `bash deploy/nginx/test-config.sh` after any change.
-- Never change the production server's sites, certificates or the `jobs.andreiul.com` block unless asked explicitly; `birds.andreiul.com` lives in another file.
+- Never change the production server's sites or certificates unless asked explicitly. Only andreiul.com is managed here: the server's `andreiul` file also holds another site's blocks, which are not in this repository, and `birds.andreiul.com` lives in another file.
 - Every external script or stylesheet gets `integrity` and `crossorigin` (R-10). Check with `python scripts/check_sri.py site/*.html`.
 - No inline script or `onclick` on `site/index.html`: the CSP forbids it. Code goes in `site/main.js`, and its version in `index.html` (`main.js?v=2`) goes up when it changes.
 - A new page gets its own `location` block with a CSP in `deploy/nginx/sites-available/andreiul`.

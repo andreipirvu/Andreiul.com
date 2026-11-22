@@ -5,8 +5,10 @@ it, on my laptop only.
 
 ## Rules of engagement
 
-- Shodan is queried only for an IP I own or am authorised to assess: my own VPS. The IP is
-  kept in `secrets/intel.enc.yaml`, never in a commit, a screenshot or this file.
+- Shodan is queried only for an IP I own or am authorised to assess: my own VPS. The
+  scripts read the IP from `secrets/intel.enc.yaml`, and screenshots and evidence redact
+  it. It is the public DNS record of andreiul.com, so it is not secret (see
+  `docs/project.md`, Lab 6).
 - Indicators from MISP are live intelligence: `enrich/` is git-ignored, and TLP:AMBER or
   higher stays off any screenshot I share.
 - The MISP key and the Shodan key exist in git only as SOPS ciphertext (R-02).
