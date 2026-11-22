@@ -28,8 +28,10 @@ Risks and controls: [`RISK-REGISTER.md`](../RISK-REGISTER.md). Evidence: [`docs/
 | Lab PKI in front of Dashboards | `step-ca`, `make cert`, `nginx/frontdoor.conf`, `make chain` |
 
 Choices beyond the lab text: every host port is bound to 127.0.0.1; the front door hides
-its version and allows TLS 1.2+ only; the base image is nginx 1.30.7-alpine-slim, because
-Trivy found 70 HIGH or CRITICAL issues in 1.27-alpine and none in 1.30.7-alpine-slim.
+its version and allows TLS 1.2+ only; the base image was moved from 1.27-alpine to
+nginx 1.30.7-alpine-slim, because Trivy found 70 HIGH or CRITICAL issues in the first and
+none in the second. Dependabot has since moved it to 1.31.8-alpine-slim (nginx mainline),
+which passed the same scan; a test keeps `compose.yaml` on the digest the Dockerfile builds.
 
 ## Lab 4: CI/CD and supply chain (R-01, R-08, R-09)
 
