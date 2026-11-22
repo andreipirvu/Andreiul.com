@@ -4,14 +4,19 @@ on:
     branches: [main]
   push:
     branches: [main]
+    tags: ['v*']
 
-# Read-only token for every job. Nothing here writes to the repository.
+# The default token is read-only. Only the release job widens it (R-09).
 permissions:
   contents: read
 
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
+
+# Every third-party action is pinned to a full commit SHA; the tag is only a comment.
+# Dependabot (.github/dependabot.yml) proposes updates after a 7-day cooldown (R-08).
+# Values reach the shell through env:, never as ${{ ... }} inside run: scripts.
 
 jobs:
   secrets:
@@ -21,8 +26,6 @@ jobs:
       contents: read
       pull-requests: read
     steps:
-      # Every action is pinned to a full commit SHA; the tag is kept in the comment.
-      # Dependabot (.github/dependabot.yml) proposes updates to these pins.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
@@ -57,5 +60,110 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      # The whole repository, so dependabot.yml is audited too (e.g. a missing cooldown).
-      - run: pipx run zizmor==1.32.0 --offline .
+      # The whole repository, so dependabot.yml is audited too. The version comes
+      # from requirements-lint.txt, where Dependabot keeps it current.
+      - run: pipx run "$(grep '^zizmor==' requirements-lint.txt)" --offline .
+
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # The action downloads ShellCheck at run time: pin that too, or "stable" floats.
+      - uses: ludeeus/action-shellcheck@00cae500b08a931fb5698e11e79bfbd38e612a38 # 2.0.0
+        with:
+          version: v0.10.0
+      - uses: hadolint/hadolint-action@06be81baf89a55ffd0e24b8f04a4185738dd3387 # v3.5.0
+        with:
+          dockerfile: nginx/Dockerfile
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.11'
+      - name: Semgrep
+        env:
+          SEMGREP_SEND_METRICS: 'off'
+        run: pip install -r requirements-lint.txt && semgrep scan --config p/ci --error
+
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.11'
+      - run: pip install -r requirements-dev.txt && python -m pytest -q
+
+  scan:
+    name: scan
+    runs-on: ubuntu-latest
+    needs: [lint]
+    env:
+      # Trivy runs from its image pinned by digest, not through trivy-action. In March 2026
+      # trivy-action tags were moved to an infostealer and Trivy 0.69.4 to 0.69.6 were
+      # malicious; even a SHA-pinned trivy-action could download a bad binary at run time.
+      TRIVY_IMAGE: aquasec/trivy@sha256:8f6bb947dbc528902e11f2f5be52f7b519f6a39d5d148f41166f2040499768fb # 0.76.2
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: docker build -t frontdoor:ci nginx/
+      - name: Trivy (fail on HIGH or CRITICAL)
+        run: >
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock "$TRIVY_IMAGE"
+          image --severity HIGH,CRITICAL --exit-code 1 --no-progress frontdoor:ci
+
+  release:
+    name: release (signed image, SBOM)
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    needs: [secrets, lint, test, scan]
+    permissions:
+      contents: write   # create the release
+      packages: write   # push the image to GHCR
+      id-token: write   # OIDC identity for keyless signing
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      # A tag can point at any commit. Release only what was reviewed and merged (R-01).
+      - name: The tag must point to a commit on main
+        run: |
+          git fetch --no-tags origin main
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main \
+            || { echo "::error::$GITHUB_REF_NAME is not on main; refusing to release"; exit 1; }
+      # GHCR names must be lowercase; the repository name has a capital letter.
+      - name: Image name
+        run: echo "IMG=ghcr.io/${GITHUB_REPOSITORY,,}/frontdoor:${GITHUB_REF_NAME}" >> "$GITHUB_ENV"
+      - uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push
+        run: |
+          docker build -t "$IMG" nginx/ && docker push "$IMG"
+          echo "IMG_DIGEST=$(docker inspect --format '{{index .RepoDigests 0}}' "$IMG")" >> "$GITHUB_ENV"
+      - uses: anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
+        with:
+          image: ${{ env.IMG_DIGEST }}
+          syft-version: v1.54.0
+          format: spdx-json
+          output-file: sbom.spdx.json
+          upload-artifact: false
+      - uses: sigstore/cosign-installer@756fe2d284c7292c4e9b62c8a28f1e5629c59532 # v4.1.3
+        with:
+          cosign-release: v3.1.4
+      # Sign the digest, not the tag: a tag can be moved after signing.
+      - run: cosign sign --yes "$IMG_DIGEST"
+      - name: Release with generated notes and the SBOM
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >
+          gh release create "$GITHUB_REF_NAME" sbom.spdx.json
+          --repo "$GITHUB_REPOSITORY" --verify-tag --generate-notes
