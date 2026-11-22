@@ -1,0 +1,11 @@
+# demo: unpinned action must not run (R-08) (#12) on 2026-11-22
+lint	fail	2s	https://github.com/andreipirvu/Andreiul.com/actions/runs/45068006394/job/137348405183	
+test	fail	9s	https://github.com/andreipirvu/Andreiul.com/actions/runs/45068006394/job/137348405381	
+workflow lint (zizmor)	fail	9s	https://github.com/andreipirvu/Andreiul.com/actions/runs/45068006394/job/137348405329	
+release (signed image, SBOM)	skipping	0	https://github.com/andreipirvu/Andreiul.com/actions/runs/45068006394/job/137348463670	
+scan	skipping	0	https://github.com/andreipirvu/Andreiul.com/actions/runs/45068006394/job/137348428892	
+secret scan (gitleaks, full history)	pass	6s	https://github.com/andreipirvu/Andreiul.com/actions/runs/45068006394/job/137348405331	
+site checks (SRI)	pass	3s	https://github.com/andreipirvu/Andreiul.com/actions/runs/45068006394/job/137348405454	
+nginx config test	pending	0	https://github.com/andreipirvu/Andreiul.com/actions/runs/45068006394/job/137348405542	
+
+in_progress		demo: unpinned action must not run (R-08)	ci	demo/unpinned-action	pull_request	45068006394	22s	2026-11-22T20:43:04Z

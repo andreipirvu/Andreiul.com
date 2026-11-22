@@ -1,0 +1,33 @@
+# tagged (bad) record, destination redacted
+{
+  "hits": {
+    "total": {
+      "value": 1
+    },
+    "hits": [
+      {
+        "_source": {
+          "event": {
+            "risk_score": 80.0
+          },
+          "tags": [
+            "threat_match"
+          ],
+          "threat": {
+            "indicator": {
+              "matched": "misp:516:Network activity"
+            }
+          }
+        }
+      }
+    ]
+  }
+}
+# clean record
+{
+  "total": 1,
+  "has_threat": false,
+  "tags": [
+    null
+  ]
+}

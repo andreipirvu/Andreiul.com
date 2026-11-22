@@ -85,8 +85,112 @@ run; zizmor and `test` fail too). Screenshots in `docs/evidence/lab4/`.
 
 ## Lab 5: detection as code (R-03)
 
-To be completed.
+| Requirement | Where |
+|-------------|-------|
+| DNS answers normalised to ECS | `pipelines/suricata.conf` (ruby block for the answers list) |
+| Field types that keep long TXT answers searchable | `config/opensearch/suricata-template.json`, applied by `make up` before the first index |
+| Rule and converted query | `detections/sigma/dns_long_txt.yml`, `detections/opensearch/dns_long_txt.json` |
+| Samples with near misses | `tests/samples/make_dns_samples.py` and the four `*_dns_txt_*.json` files |
+| Rule tests and pipeline tests | `tests/test_sigma_dns_txt.py`, `tests/test_suricata_ecs.py`, `tests/sigma_match.py` |
+| Logstash in the stack | `compose.yaml` (`logstash`), `pipelines/00-input-file.conf`, `pipelines/99-output-opensearch.conf` |
+
+What the tests caught:
+
+- The first version of the rule fired on the DKIM key in the negative sample, both in the
+  rule test and after the real Logstash pipeline. The rule now excludes `._domainkey.`
+  names (two commits on the branch show the failure and the fix).
+- The pipeline test inherited from secops-demo could never pass on Logstash 8, which adds
+  `event.original` itself in ECS mode. It was never noticed because CI skipped every
+  pipeline test. Here CI sets `LOGSTASH_IMAGE`, so the pipeline tests run on every pull
+  request, against the same digest as the stack.
+
+Result in OpenSearch: replaying the samples gives exactly one hit,
+`a1b2c3.updates.example.net`, out of four indexed TXT records.
+
+### Telemetry
+
+The lab asks for my own Suricata telemetry. This project uses synthetic EVE data from
+`scripts/make_telemetry.py`: one day of office traffic (DNS, TLS, HTTP, flows, alerts) with
+a few suspicious behaviours mixed in, deterministic so that results are reproducible. Its
+`--list` option names what was mixed in. On that day the DNS TXT rule finds exactly the six
+tunnelling answers and none of the 35 benign DKIM answers in the background.
+
+### My own rule (Part F): legacy Internet Explorer user agent posting data
+
+**Technique.** T1071.001, application layer protocol over the web. In the synthetic day,
+host `10.0.0.12` sends 40 requests with `Mozilla/4.0 (compatible; MSIE 6.0; Win32)`,
+always `POST`, always to the bare IP `203.0.113.66`, to `/b/` plus a random hex ID, exactly
+every five minutes. Every other host uses one of three current browsers (Chrome 131,
+Safari 18.1, Firefox 132) and makes 1 to 7 requests over the whole day.
+
+**Design.** The rule fires on an Internet Explorer 6, 7 or 8 user agent **and** the `POST`
+method. No supported browser has sent those strings for more than a decade, while C2
+implants often hardcode them; requiring `POST` keeps old clients that only read pages out
+of the alerts. The rule does not require the bare-IP destination, so the beacon is still
+caught if it moves to a domain name. The destination and the five-minute interval go into
+the description for the analyst: a single Sigma rule cannot measure time between events.
+
+**Near misses (negative sample).**
+
+| Record | Fails on | Why it is realistic |
+|--------|----------|---------------------|
+| MSIE 6.0, `GET` to `intranet.example.com` | method | Old intranet tools still report IE 6 |
+| Chrome 131, `POST` to `192.168.1.1/cgi-bin/login` | user agent | A router admin login posts to a bare IP |
+
+**Mapping first.** The pipeline already mapped HTTP to ECS (`user_agent.original`,
+`http.request.method`, `url.domain`, `url.original`), but the index template did not: the
+user agent would have been analysed text, and a wildcard such as `*MSIE\ 6.0*` does not
+match whole values there. The template now maps these fields as `keyword`.
+
+| File | Content |
+|------|---------|
+| `detections/sigma/http_legacy_ie_post.yml` | the rule |
+| `detections/opensearch/http_legacy_ie_post.json` | the converted query |
+| `tests/samples/make_http_samples.py` and `*_http_ie_post_*.json` | positive and negative samples |
+| `tests/test_sigma_http_ie_post.py` | rule tests and the converted-query check |
+| `tests/test_suricata_ecs.py` | the same samples through the real Logstash |
+
+**Result.** 26 tests pass. On the synthetic day in OpenSearch the rule returns exactly 40
+hits out of 2533 events, all from `10.0.0.12` to `203.0.113.66`; none of the 227 ordinary
+HTTP requests matches.
 
 ## Lab 6: threat intelligence (R-04, R-05)
 
-To be completed.
+| Requirement | Where |
+|-------------|-------|
+| MISP keys and Shodan key only as ciphertext | `secrets/intel.enc.yaml` (made with `sops edit`), decrypted by `make secrets` |
+| Feed lifecycle: trust, warninglists, ageing, dedup, atomic write | `scripts/misp_pull.py` (`make intel`), `tests/test_misp_pull.py` |
+| Enrichment that changes the outcome | `translate` in `pipelines/suricata.conf`, pipeline tests with `tests/samples/ioc_ip_test.yml` |
+| What Shodan already sees on my own IP | `scripts/exposure_check.py` (`make exposure`), `tests/test_exposure_check.py` |
+| MISP versions, feed and date | `docs/misp-setup.md` |
+
+Choices beyond the lab text:
+
+- `make up` creates an empty lookup when none exists, so Logstash starts before the first
+  MISP pull instead of failing on `dictionary_path`.
+- Two extra tests run `misp_pull.main()` against a stand-in for PyMISP: the lookup is
+  written atomically, and an empty feed keeps the previous lookup instead of wiping it.
+- The index template maps `threat.indicator.matched` as a keyword and `event.risk_score`
+  as a float, so both can be filtered and aggregated in Dashboards.
+- Indicators age out after 30 days (`MISP_MAX_AGE`, default `30d`). The CIRCL OSINT feed
+  used for the lab is historical (events from 2014 to 2016), so the lab run used
+  `MISP_MAX_AGE=5000d`; with live feeds the 30-day default stays.
+- A free Shodan API key is refused for host lookups (403; they need a membership).
+  `exposure_check.py` then falls back to Shodan's free InternetDB, which gives the same
+  open ports without the organisation and date, and records which source answered.
+
+Result with the real CIRCL feed: a flow to the first pulled indicator was tagged
+`threat_match` with `threat.indicator.matched: misp:516:Network activity` and a risk score
+of 80, and the clean flow had no tag (`docs/evidence/lab6/`).
+
+Result on the stack, with the documentation address `203.0.113.66` as the indicator: the
+bad record carries `threat_match`, `threat.indicator.matched` and a risk score of 80; the
+clean record has no `threat` field and no tag. On the synthetic day the enrichment flags
+exactly the two hosts that talk to that address.
+
+The Shodan target is my own VPS, which I am authorised to assess. Its address is not
+personal data in the sense of the lab: it is the public DNS A record of andreiul.com, which
+anyone can resolve, and it appears in the history of `deploy/nginx/README.md` (removed
+from the file on 2026-11-22; the history was kept, not rewritten). The scripts still read
+it only from `secrets/intel.enc.yaml`, evidence shows it as `<redacted>`, and snapshots
+in `exposure/` are git-ignored.

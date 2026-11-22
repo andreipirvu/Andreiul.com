@@ -73,3 +73,13 @@ def test_python_requirements_are_pinned_exactly(path):
         if line:
             assert re.fullmatch(r"[A-Za-z0-9_.\-\[\]]+==[0-9][\w.]*", line), \
                 f"{rel(path)}: '{line}' is not pinned with =="
+
+
+def test_ci_runs_the_same_logstash_image_as_the_stack():
+    """The pipeline tests in CI must exercise the image the stack runs (R-03)."""
+    env = dict(line.split("=", 1) for line in (ROOT / ".env.example").read_text().splitlines()
+               if "=" in line and not line.startswith("#"))
+    ci = (ROOT / ".github/workflows/ci.yml").read_text()
+    found = re.search(r"LOGSTASH_IMAGE:\s*(\S+)", ci)
+    assert found, "ci.yml does not set LOGSTASH_IMAGE"
+    assert found.group(1) == env["LOGSTASH_IMAGE"].strip()

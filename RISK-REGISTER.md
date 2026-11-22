@@ -19,8 +19,8 @@ Implemented or Verified points to something a reviewer can open in this reposito
 |----|----------|-------|--------------------|--------|---|---|----------|---------|----|----|----------|----------|--------|
 | R-01 | Operational | `main` branch | An AI agent or I commit code that bypasses review | — | 4 | 4 | 16 (High) | Ruleset: pull request and status checks required, no direct push, no force push; governance workflow fails on any commit to `main` without a merged PR; `no-commit-to-branch` pre-commit hook | 1 | 4 | 4 (Low) | `.github/workflows/governance.yml`; `.pre-commit-config.yaml`; `docs/ruleset-main.json` (Lab 4) | Implemented |
 | R-02 | Operational | Repository secrets | A plaintext key or password is committed | T1552.001 | 4 | 5 | 20 (High) | gitleaks in pre-commit and in CI over the full history; `.gitignore` for env files, keys and certificates; Claude Code guard blocks reading secret paths; SOPS/age so only ciphertext is committed | 2 | 3 | 6 (Low) | `.pre-commit-config.yaml`; `.github/workflows/ci.yml`; `.claude/`; `.sops.yaml` and `secrets/*.enc.yaml` (Lab 3) | Implemented |
-| R-03 | Internal | Logstash enrichment pipeline | Malformed or unmapped log input breaks normalisation and detections go blind | — | 3 | 4 | 12 (Medium) | Detection as code: Sigma rules with positive and negative samples, rule tests and pipeline tests in CI on every pull request | 1 | 4 | 4 (Low) | `detections/`; `tests/` (Lab 5) | Open |
-| R-04 | External | Network telemetry | Traffic to or from known-malicious IPs goes unflagged | T1071 | 4 | 4 | 16 (High) | MISP indicators pulled into a Logstash `translate` lookup; matching events tagged `threat_match` and risk-scored | 2 | 3 | 6 (Low) | `scripts/misp_pull.py`; `pipelines/suricata.conf` (Lab 6) | Open |
+| R-03 | Internal | Logstash enrichment pipeline | Malformed or unmapped log input breaks normalisation and detections go blind | — | 3 | 4 | 12 (Medium) | Detection as code: Sigma rules with positive and negative samples, rule tests and pipeline tests in CI on every pull request | 1 | 4 | 4 (Low) | `detections/`; `tests/test_sigma_dns_txt.py`; `tests/test_sigma_http_ie_post.py`; `tests/test_suricata_ecs.py`; `.github/workflows/ci.yml` (`test`) | Implemented |
+| R-04 | External | Network telemetry | Traffic to or from known-malicious IPs goes unflagged | T1071 | 4 | 4 | 16 (High) | MISP indicators pulled into a Logstash `translate` lookup; matching events tagged `threat_match` and risk-scored | 2 | 3 | 6 (Low) | `scripts/misp_pull.py`; `pipelines/suricata.conf`; `tests/test_misp_pull.py`; `tests/test_suricata_ecs.py`; `docs/misp-setup.md` | Implemented |
 | R-05 | External | Public nginx (www.andreiul.com and the lab front door) | Exposed service or version banner indexed by Shodan | T1595.002 | 3 | 3 | 9 (Medium) | `server_tokens off` on the server (applied 2026-11-11); weekly `site-monitor` checks the banner; Shodan snapshot of the server IP (Lab 6), alert on change (Lab 7) | 1 | 3 | 3 (Low) | `deploy/nginx/conf.d/security.conf`; `.github/workflows/site-monitor.yml`; `scripts/exposure_check.py` (Lab 6) | Implemented |
 | R-08 | Operational | CI pipeline | A third-party action's tag is moved to malicious code | T1195.001 | 3 | 4 | 12 (Medium) | Every action pinned to a full commit SHA; repository setting requires SHA pinning; zizmor audits the whole repository; Dependabot with a 7-day cooldown | 1 | 4 | 4 (Low) | `.github/workflows/`; `.github/dependabot.yml`; settings screenshots (Lab 4) | Implemented |
 | R-09 | Operational | Repository secrets in CI | A fork pull request runs a workflow that reads secrets | T1552 | 2 | 5 | 10 (Medium) | Only `pull_request` triggers, never `pull_request_target`; read-only default token, widened per job; approval required for all external contributors | 1 | 5 | 5 (Low) | `.github/workflows/`; settings screenshots (Lab 4) | Implemented |
@@ -64,6 +64,11 @@ discloses nothing new, and no long-lived signing key exists to steal.
 
 **R-10 to R-13** protect the live site. Their controls were deployed and checked in the
 browser on 2026-11-11.
+
+R-13 covers andreiul.com only. Another site on the same server, `jobs.andreiul.com`, is
+managed outside this repository. Its known issues stay open until it is reworked: uploaded
+files are served from its own origin without security headers, and the application sits
+inside the andreiul.com webroot (which is why `/nexusjobs/` is blocked here).
 
 ## Renumbering (2026-11-22)
 
