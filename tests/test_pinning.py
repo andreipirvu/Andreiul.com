@@ -45,6 +45,19 @@ def test_compose_images_are_pinned_by_digest_or_come_from_env():
         assert DIGEST.search(image), f"service {name}: {image} is not pinned by digest"
 
 
+def test_frontdoor_runs_the_image_ci_builds_and_scans():
+    """compose.yaml runs the front door from the same base image that nginx/Dockerfile
+    builds, so the image CI scans and signs is the one the stack runs (R-14). A Dependabot
+    update of the Dockerfile fails here until compose.yaml gets the same digest."""
+    built = [line.split()[1] for line in (ROOT / "nginx" / "Dockerfile").read_text().splitlines()
+             if line.strip().upper().startswith("FROM ")][-1]
+    services = yaml.safe_load((ROOT / "compose.yaml").read_text())["services"]
+    run = services["frontdoor"]["image"]
+    digest = lambda ref: ref.split("@", 1)[1]
+    assert digest(run) == digest(built), \
+        f"compose.yaml frontdoor runs {run}, but nginx/Dockerfile builds {built}"
+
+
 @pytest.mark.parametrize("path", WORKFLOWS, ids=rel)
 def test_actions_are_pinned_to_a_full_commit_sha(path):
     for line in path.read_text().splitlines():

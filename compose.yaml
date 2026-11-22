@@ -37,7 +37,7 @@ services:
         condition: service_healthy
 
   frontdoor:
-    image: nginx@sha256:8c950211a641ec5b23f265450517001f6bcca533666120ebe36cb4cff3d00a55 # 1.30.7-alpine-slim
+    image: nginx@sha256:4c734d33ee731135dc9f2349914a34551c920f4451fca8bb05bf5880eb9079e8 # 1.31.8-alpine-slim (same as nginx/Dockerfile)
     ports:
       - "127.0.0.1:${HTTPS_PORT}:443"
     volumes:
