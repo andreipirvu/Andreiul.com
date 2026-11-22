@@ -172,6 +172,16 @@ Choices beyond the lab text:
   written atomically, and an empty feed keeps the previous lookup instead of wiping it.
 - The index template maps `threat.indicator.matched` as a keyword and `event.risk_score`
   as a float, so both can be filtered and aggregated in Dashboards.
+- Indicators age out after 30 days (`MISP_MAX_AGE`, default `30d`). The CIRCL OSINT feed
+  used for the lab is historical (events from 2014 to 2016), so the lab run used
+  `MISP_MAX_AGE=5000d`; with live feeds the 30-day default stays.
+- A free Shodan API key is refused for host lookups (403; they need a membership).
+  `exposure_check.py` then falls back to Shodan's free InternetDB, which gives the same
+  open ports without the organisation and date, and records which source answered.
+
+Result with the real CIRCL feed: a flow to the first pulled indicator was tagged
+`threat_match` with `threat.indicator.matched: misp:516:Network activity` and a risk score
+of 80, and the clean flow had no tag (`docs/evidence/lab6/`).
 
 Result on the stack, with the documentation address `203.0.113.66` as the indicator: the
 bad record carries `threat_match`, `threat.indicator.matched` and a risk score of 80; the
