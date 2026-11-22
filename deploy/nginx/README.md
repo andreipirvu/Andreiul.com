@@ -10,9 +10,9 @@ Serverul (Contabo, Ubuntu 22.04, nginx 1.18) găzduiește trei site-uri:
 
 | Fișier din repo | Unde merge pe server | Ce face |
 |-----------------|---------------------|---------|
-| `conf.d/security.conf` | `/etc/nginx/conf.d/security.conf` | `server_tokens off` pentru toate site-urile (R-04). E deja instalat. |
-| `snippets/security-headers.conf` | `/etc/nginx/snippets/security-headers.conf` | HSTS, nosniff, X-Frame-Options etc. (R-05) |
-| `sites-available/andreiul` | `/etc/nginx/sites-available/andreiul` | Fișierul complet, cu CSP pe pagină și blocarea `/nexusjobs/` (R-05, R-08) |
+| `conf.d/security.conf` | `/etc/nginx/conf.d/security.conf` | `server_tokens off` pentru toate site-urile (R-05). E deja instalat. |
+| `snippets/security-headers.conf` | `/etc/nginx/snippets/security-headers.conf` | HSTS, nosniff, X-Frame-Options etc. (R-11) |
+| `sites-available/andreiul` | `/etc/nginx/sites-available/andreiul` | Fișierul complet, cu CSP pe pagină și blocarea `/nexusjobs/` (R-11, R-13) |
 
 ## Testare înainte de deploy
 

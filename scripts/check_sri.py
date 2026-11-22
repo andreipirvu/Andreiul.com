@@ -1,5 +1,5 @@
 """Fail if an HTML page loads a third-party script or stylesheet without Subresource
-Integrity (R-03). Google Fonts CSS is exempt: it is generated per browser, so it has
+Integrity (R-10). Google Fonts CSS is exempt: it is generated per browser, so it has
 no stable hash. Usage: python scripts/check_sri.py site/*.html
 """
 import sys

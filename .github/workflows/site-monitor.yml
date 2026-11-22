@@ -1,5 +1,5 @@
 # Weekly check of the live site: version banner, security headers, HTTPS redirect,
-# exposed dotfiles, security.txt (R-04, R-05, R-06). A failed run is the alert:
+# exposed dotfiles, security.txt (R-05, R-11, R-12). A failed run is the alert:
 # GitHub emails the repository owner when a scheduled workflow fails.
 name: site-monitor
 on:

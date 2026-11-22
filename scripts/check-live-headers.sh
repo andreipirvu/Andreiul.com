@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Check the live site for the controls in RISK-REGISTER.md (R-04, R-05, R-06, R-08).
+# Check the live site for the controls in RISK-REGISTER.md (R-05, R-11, R-12, R-13).
 # Exit 1 if any check fails. Usage: scripts/check-live-headers.sh [https://www.andreiul.com]
 set -uo pipefail
 
@@ -13,7 +13,7 @@ bad() { printf 'FAIL  %s\n' "$1"; fail=1; }
 headers="$(curl -sS -D - -o /dev/null --max-time 20 "$base/")" || { echo "cannot reach $base"; exit 1; }
 header() { printf '%s' "$headers" | tr -d '\r' | grep -i "^$1:" | head -1 | cut -d' ' -f2-; }
 
-# R-04: no version in the Server banner.
+# R-05: no version in the Server banner.
 server="$(header server)"
 if printf '%s' "$server" | grep -Eq '[0-9]+\.[0-9]+'; then
   bad "Server header exposes a version: '$server'"
@@ -21,7 +21,7 @@ else
   ok  "Server header has no version ('${server:-absent}')"
 fi
 
-# R-05: security headers.
+# R-11: security headers.
 for h in strict-transport-security content-security-policy x-content-type-options referrer-policy permissions-policy; do
   if [ -n "$(header "$h")" ]; then ok "$h present"; else bad "$h missing"; fi
 done
@@ -49,7 +49,7 @@ for p in /.git/HEAD /.git/config /.env /.DS_Store /nexusjobs/backend/.env /nexus
   if [ "$c" = "200" ]; then bad "$p is served (200)"; else ok "$p not served ($c)"; fi
 done
 
-# R-06: security.txt published (RFC 9116).
+# R-12: security.txt published (RFC 9116).
 c="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 20 "$base/.well-known/security.txt")"
 if [ "$c" = "200" ]; then ok "/.well-known/security.txt published"; else bad "/.well-known/security.txt missing ($c)"; fi
 
