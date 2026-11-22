@@ -1,0 +1,27 @@
+{
+  "index_patterns": ["suricata-*"],
+  "template": {
+    "mappings": {
+      "properties": {
+        "source": {"properties": {"ip": {"type": "ip"}}},
+        "destination": {"properties": {"ip": {"type": "ip"}}},
+        "dns": {
+          "properties": {
+            "type": {"type": "keyword"},
+            "question": {"properties": {
+              "name": {"type": "keyword"},
+              "type": {"type": "keyword"}
+            }},
+            "answers": {"properties": {
+              "name": {"type": "keyword"},
+              "type": {"type": "keyword"},
+              "data": {"type": "keyword", "ignore_above": 8191}
+            }}
+          }
+        },
+        "threat": {"properties": {"indicator": {"properties": {"matched": {"type": "keyword"}}}}},
+        "event": {"properties": {"risk_score": {"type": "float"}}}
+      }
+    }
+  }
+}

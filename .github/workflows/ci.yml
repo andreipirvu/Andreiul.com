@@ -89,6 +89,10 @@ jobs:
   test:
     name: test
     runs-on: ubuntu-latest
+    env:
+      # Same digest as .env.example, so the pipeline tests run the real Logstash here
+      # instead of skipping (R-03). tests/test_pinning.py keeps the two in sync.
+      LOGSTASH_IMAGE: opensearchproject/logstash-oss-with-opensearch-output-plugin@sha256:43b0cdaf26edca812a9eafb684ae6101d8f2fd27165345737c39c04a6c7430eb # 8.9.0
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

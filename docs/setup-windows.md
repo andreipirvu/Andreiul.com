@@ -85,11 +85,33 @@ Trust the lab root in Windows so the browser accepts `https://localhost`: copy
 double-click it, choose Install Certificate → Current User → "Trusted Root Certification
 Authorities". Remove it at the end of the course the same way (certmgr.msc).
 
-## 5. Evidence for Lab 3 (`docs/evidence/lab3/`)
+## 5. Lab 5 on your machine
+
+```bash
+git switch lab5/detection
+make env                         # adds LOGSTASH_IMAGE to your existing .env
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements-dev.txt
+make test                        # rule tests and pipeline tests, nothing skipped
+make up                          # also applies the index template
+make replay                      # the four DNS samples
+make hits                        # expect exactly one hit: a1b2c3.updates.example.net
+python3 scripts/make_telemetry.py && python3 scripts/make_telemetry.py --list
+```
+
+In Dashboards: create the index pattern `suricata-*` (time field `@timestamp`), open
+Discover, switch the query language to Lucene, set the time range to include 9 and 20
+November 2026, and paste the query printed by
+`sigma convert -t opensearch_lucene --without-pipeline detections/sigma/dns_long_txt.yml`.
+
+## 6. Evidence for Lab 3 (`docs/evidence/lab3/`)
 
 - `health-run1.txt` and `health-run2.txt`: the output of `make health` before and after
   `make down && make up`.
 - `ciphertext.txt`: `git show HEAD:secrets/opensearch.enc.yaml | head`.
 - `chain.txt` (`make chain`) and a browser screenshot of the certificate chain.
+
+Evidence for Lab 5 (`docs/evidence/lab5/`): `make test` output, `make hits` output and a
+Discover screenshot of the single sample hit.
 
 Never put `.env.secrets`, `certs/` or `keys.txt` in git; `.gitignore` already blocks them.

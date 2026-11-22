@@ -85,7 +85,40 @@ run; zizmor and `test` fail too). Screenshots in `docs/evidence/lab4/`.
 
 ## Lab 5: detection as code (R-03)
 
-To be completed.
+| Requirement | Where |
+|-------------|-------|
+| DNS answers normalised to ECS | `pipelines/suricata.conf` (ruby block for the answers list) |
+| Field types that keep long TXT answers searchable | `config/opensearch/suricata-template.json`, applied by `make up` before the first index |
+| Rule and converted query | `detections/sigma/dns_long_txt.yml`, `detections/opensearch/dns_long_txt.json` |
+| Samples with near misses | `tests/samples/make_dns_samples.py` and the four `*_dns_txt_*.json` files |
+| Rule tests and pipeline tests | `tests/test_sigma_dns_txt.py`, `tests/test_suricata_ecs.py`, `tests/sigma_match.py` |
+| Logstash in the stack | `compose.yaml` (`logstash`), `pipelines/00-input-file.conf`, `pipelines/99-output-opensearch.conf` |
+
+What the tests caught:
+
+- The first version of the rule fired on the DKIM key in the negative sample, both in the
+  rule test and after the real Logstash pipeline. The rule now excludes `._domainkey.`
+  names (two commits on the branch show the failure and the fix).
+- The pipeline test inherited from secops-demo could never pass on Logstash 8, which adds
+  `event.original` itself in ECS mode. It was never noticed because CI skipped every
+  pipeline test. Here CI sets `LOGSTASH_IMAGE`, so the pipeline tests run on every pull
+  request, against the same digest as the stack.
+
+Result in OpenSearch: replaying the samples gives exactly one hit,
+`a1b2c3.updates.example.net`, out of four indexed TXT records.
+
+### Telemetry
+
+The lab asks for my own Suricata telemetry. This project uses synthetic EVE data from
+`scripts/make_telemetry.py`: one day of office traffic (DNS, TLS, HTTP, flows, alerts) with
+a few suspicious behaviours mixed in, deterministic so that results are reproducible. Its
+`--list` option names what was mixed in. On that day the DNS TXT rule finds exactly the six
+tunnelling answers and none of the 35 benign DKIM answers in the background.
+
+### My own rule (Part F)
+
+To be completed by me: technique, ATT&CK tag, the ECS mapping it needs, samples with a
+realistic near miss, rule test and pipeline test.
 
 ## Lab 6: threat intelligence (R-04, R-05)
 
