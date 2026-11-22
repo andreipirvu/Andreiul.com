@@ -1,4 +1,4 @@
 # Linters for the CI "lint" and "workflows" jobs. Pinned exactly: an unpinned
 # `pip install` is the same problem as an unpinned action (R-08).
-semgrep==1.184.0
+semgrep==1.185.0
 zizmor==1.32.0
