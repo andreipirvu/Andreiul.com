@@ -1,0 +1,30 @@
+title: Legacy Internet Explorer user agent posting data
+id: 5b240bc1-0212-4418-ba75-b939e5954ed7
+status: experimental
+description: >-
+  An HTTP POST carrying an Internet Explorer 6, 7 or 8 user agent. No supported browser has
+  sent these strings for more than a decade, while C2 implants often hardcode them. Check
+  the destination and the timing of the source: in the synthetic telemetry the source posts
+  to a bare IP every five minutes, a beacon pattern a single Sigma rule cannot express.
+references:
+  - https://attack.mitre.org/techniques/T1071/001/
+author: Andrei Pirvu
+date: 2026-11-22
+tags:
+  - attack.command-and-control
+  - attack.t1071.001
+logsource:
+  product: suricata
+  service: http
+detection:
+  legacy_ie:
+    user_agent.original|contains:
+      - 'MSIE 6.0'
+      - 'MSIE 7.0'
+      - 'MSIE 8.0'
+  post:
+    http.request.method: POST
+  condition: legacy_ie and post
+falsepositives:
+  - Legacy line-of-business applications or embedded devices that hardcode an old Internet Explorer user agent and post data
+level: medium

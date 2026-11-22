@@ -1,0 +1,1 @@
+{"event": {"module": "suricata", "dataset": "suricata.eve"}, "http": {"request": {"method": "POST"}, "response": {"status_code": 200}}, "user_agent": {"original": "Mozilla/4.0 (compatible; MSIE 6.0; Win32)"}, "url": {"domain": "203.0.113.66", "original": "/b/ccad50db"}, "destination": {"ip": "203.0.113.66"}}
