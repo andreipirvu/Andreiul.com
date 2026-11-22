@@ -20,6 +20,7 @@ def run_pipeline(sample: Path) -> list[dict]:
         "docker", "run", "--rm", "-i",
         "-v", f"{ROOT / 'pipelines' / 'suricata.conf'}:/pipe/10-suricata.conf:ro",
         "-v", f"{ROOT / 'tests' / 'harness.conf'}:/pipe/00-harness.conf:ro",
+        "-v", f"{ROOT / 'tests' / 'samples' / 'ioc_ip_test.yml'}:/enrich/ioc_ip.yml:ro",
         IMAGE, "logstash", "-f", "/pipe", "--log.level=error",
     ]
     out = subprocess.run(
@@ -54,6 +55,19 @@ def test_dns_answer_maps_to_ecs_and_fires_the_rule():
 def test_negative_dns_samples_stay_quiet_after_the_pipeline():
     events = run_pipeline(ROOT / "tests/samples/eve_dns_txt_negative.json")
     assert len(events) == 3 and not any(rule_matches(RULE, ev) for ev in events)
+
+
+def test_known_bad_destination_is_tagged_and_scored():
+    (ev,) = run_pipeline(ROOT / "tests/samples/eve_flow_ioc_positive.json")
+    assert ev["threat"]["indicator"]["matched"] == "misp:0:Network activity"
+    assert "threat_match" in ev["tags"]
+    assert ev["event"]["risk_score"] == 80.0
+
+
+def test_clean_destination_is_untouched():
+    (ev,) = run_pipeline(ROOT / "tests/samples/eve_flow_ioc_negative.json")
+    assert "threat" not in ev
+    assert "threat_match" not in ev.get("tags", [])
 
 
 # My own rule (Lab 5 Part F): the same chain for HTTP, raw Suricata -> Logstash -> rule.
