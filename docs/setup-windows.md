@@ -104,12 +104,46 @@ Discover, switch the query language to Lucene, set the time range to include 9 a
 November 2026, and paste the query printed by
 `sigma convert -t opensearch_lucene --without-pipeline detections/sigma/dns_long_txt.yml`.
 
-## 6. Evidence for Lab 3 (`docs/evidence/lab3/`)
+## 6. Lab 6 on your machine
+
+Do Part A the evening before: MISP's first boot and first feed fetch are slow.
+
+```bash
+cd ~ && git clone https://github.com/MISP/misp-docker.git && cd misp-docker
+cp template.env .env
+# In misp-docker/.env set: NGINX_HTTP_PORT=8081  NGINX_HTTPS_PORT=8444  BASE_URL=https://localhost:8444
+docker compose pull && docker compose up -d
+docker images --digests | grep misp          # paste into docs/misp-setup.md
+```
+
+Open https://localhost:8444, log in as `admin@admin.test` / `admin`, change the password at
+once, create an auth key (Administration, List Auth Keys), then enable and fetch the CIRCL
+OSINT Feed (Sync Actions, Feeds). Then, in this repository:
+
+```bash
+git switch lab6/threat-intel
+sops edit secrets/intel.enc.yaml     # MISP_URL, MISP_KEY, MISP_CA: "", SHODAN_KEY, OWN_PUBLIC_IP
+git add secrets/intel.enc.yaml && git commit -m "feat(intel): encrypted MISP and Shodan keys (R-02, R-04)"
+pip install -r requirements-intel.txt
+make down && make up                 # decrypts both secret files
+make intel                           # MISP indicators into enrich/ioc_ip.yml
+make test
+make exposure                        # once: the free tier rate-limits loops
+```
+
+`OWN_PUBLIC_IP` is your VPS address, which you are authorised to query. Never paste it
+into a commit or an unredacted screenshot.
+
+## 7. Evidence for Lab 3 (`docs/evidence/lab3/`)
 
 - `health-run1.txt` and `health-run2.txt`: the output of `make health` before and after
   `make down && make up`.
 - `ciphertext.txt`: `git show HEAD:secrets/opensearch.enc.yaml | head`.
 - `chain.txt` (`make chain`) and a browser screenshot of the certificate chain.
+
+Evidence for Lab 6 (`docs/evidence/lab6/`): Discover screenshots of the tagged bad record
+and the untouched clean record (Part E), `docs/misp-setup.md` filled in, and the Shodan
+snapshot with the IP redacted.
 
 Evidence for Lab 5 (`docs/evidence/lab5/`): `make test` output, `make hits` output and a
 Discover screenshot of the single sample hit.

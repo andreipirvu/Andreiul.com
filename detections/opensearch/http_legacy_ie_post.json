@@ -1,0 +1,1 @@
+{"query": {"bool": {"must": [{"query_string": {"query": "(user_agent.original:(*MSIE\\ 6.0* OR *MSIE\\ 7.0* OR *MSIE\\ 8.0*)) AND http.request.method:POST", "analyze_wildcard": true}}]}}}

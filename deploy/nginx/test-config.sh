@@ -21,14 +21,15 @@ cp "$here/snippets/security-headers.conf" "$work/snippets/"
 cp "$here/conf.d/security.conf" "$work/conf.d/"
 cp "$here/test/options-ssl-nginx.fixture" "$work/le/options-ssl-nginx.conf"
 cp -r "$repo/site/." "$work/www/andreiul.com/"
-mkdir -p "$work/www/andreiul.com/nexusjobs/frontend/dist" "$work/www/andreiul.com/nexusjobs/backend/uploads"
-echo '<h1>jobs</h1>' > "$work/www/andreiul.com/nexusjobs/frontend/dist/index.html"
+# A fake .env where the other application's files sit on the server, so --serve can show
+# that /nexusjobs/ returns 404 (R-13).
+mkdir -p "$work/www/andreiul.com/nexusjobs/backend"
 echo 'SECRET=test'   > "$work/www/andreiul.com/nexusjobs/backend/.env"
 echo '<h1>birds</h1>' > "$work/www/birds/index.html"
 chmod -R a+rX "$work"
 
 openssl req -x509 -newkey rsa:2048 -nodes -days 1 -subj "/CN=andreiul.com" \
-  -addext "subjectAltName=DNS:andreiul.com,DNS:www.andreiul.com,DNS:jobs.andreiul.com,DNS:birds.andreiul.com" \
+  -addext "subjectAltName=DNS:andreiul.com,DNS:www.andreiul.com,DNS:birds.andreiul.com" \
   -keyout "$work/le/privkey.pem" -out "$work/le/fullchain.pem" 2>/dev/null
 openssl dhparam -dsaparam -out "$work/le/ssl-dhparams.pem" 2048 2>/dev/null
 

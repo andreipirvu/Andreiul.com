@@ -34,10 +34,6 @@ Fiecare răspunde unui risc din [`RISK-REGISTER.md`](RISK-REGISTER.md).
 
 Pentru lucru local: `pip install pre-commit && pre-commit install`.
 
-## Istoric
-
-Versiunile anterioare (Dad Joke Generator) rămân în istoricul git.
-
 ## Module 4A project
 
 The same repository holds my security telemetry project, built lab by lab from
@@ -51,5 +47,6 @@ Windows setup: [`docs/setup-windows.md`](docs/setup-windows.md).
 | 3 | Infrastructure as code, SOPS secrets, lab PKI | `compose.yaml`, `Makefile`, `nginx/`, `scripts/init-secrets.sh` |
 | 4 | CI/CD validation and supply chain | `.github/`, `nginx/Dockerfile`, `tests/`, `requirements-*.txt` |
 | 5 | Detection as code | `pipelines/`, `detections/`, `config/opensearch/`, `tests/`, `scripts/make_telemetry.py` |
+| 6 | Threat intelligence | `scripts/misp_pull.py`, `scripts/exposure_check.py`, `docs/misp-setup.md` |
 
 Project document: [`docs/project.md`](docs/project.md).
