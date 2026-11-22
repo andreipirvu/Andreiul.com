@@ -49,3 +49,6 @@ Windows setup: [`docs/setup-windows.md`](docs/setup-windows.md).
 | Lab | Topic | Main files |
 |-----|-------|------------|
 | 3 | Infrastructure as code, SOPS secrets, lab PKI | `compose.yaml`, `Makefile`, `nginx/`, `scripts/init-secrets.sh` |
+| 4 | CI/CD validation and supply chain | `.github/`, `nginx/Dockerfile`, `tests/`, `requirements-*.txt` |
+
+Project document: [`docs/project.md`](docs/project.md).

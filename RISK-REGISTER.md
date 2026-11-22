@@ -28,6 +28,7 @@ Implemented or Verified points to something a reviewer can open in this reposito
 | R-11 | External | Website visitors | XSS, clickjacking or HTTPS downgrade for lack of security headers | T1189 | 3 | 3 | 9 (Medium) | Per-page Content-Security-Policy (no inline script on the main page), HSTS, X-Frame-Options, nosniff, Referrer-Policy, Permissions-Policy | 1 | 3 | 3 (Low) | `deploy/nginx/`; `site/main.js`; `scripts/check-live-headers.sh` | Verified |
 | R-12 | External | Site reputation | A researcher who finds a flaw has no way to report it | — | 3 | 2 | 6 (Low) | `/.well-known/security.txt` (RFC 9116) and private vulnerability reporting | 1 | 2 | 2 (Low) | `site/.well-known/security.txt`; `SECURITY.md` | Verified |
 | R-13 | Internal | Secrets of applications hosted on the same server | Application files served by the web server expose credentials | T1552.001 | 4 | 5 | 20 (High) | Application paths and dotfiles blocked in nginx; credentials rotated; checked weekly by `site-monitor` | 1 | 5 | 5 (Low) | `deploy/nginx/sites-available/andreiul`; `scripts/check-live-headers.sh` | Implemented |
+| R-14 | Operational | Front door container image | A vulnerable or tampered image reaches users | T1525 | 3 | 4 | 12 (Medium) | Base image pinned by digest and chosen with Trivy; `scan` fails on HIGH or CRITICAL; release only from `main`, image signed by digest with Sigstore (keyless) and shipped with an SPDX SBOM; `cosign verify` on my machine | 1 | 4 | 4 (Low) | `nginx/Dockerfile`; `.github/workflows/ci.yml`; release `v0.4.0` and `docs/evidence/lab4/` | Implemented |
 
 R-06 and R-07 are reserved for the course numbering.
 
@@ -55,6 +56,11 @@ that weekly. Lab 6 adds a Shodan snapshot of the server's own IP, which Lab 7 di
 **R-08 and R-09.** A moved tag cannot run here, because every `uses:` names a commit SHA
 and GitHub refuses unpinned actions. Workflows that run code from pull requests get a
 read-only token and no secrets.
+
+**R-14.** Trivy fails the pipeline on a HIGH or CRITICAL finding. A release is built only
+from a commit on `main`, signed by digest with Sigstore keyless signing and shipped with an
+SPDX SBOM. Signing decision: the repository is public, so the public Rekor log entry
+discloses nothing new, and no long-lived signing key exists to steal.
 
 **R-10 to R-13** protect the live site. Their controls were deployed and checked in the
 browser on 2026-11-11.
