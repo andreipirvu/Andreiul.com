@@ -122,4 +122,27 @@ realistic near miss, rule test and pipeline test.
 
 ## Lab 6: threat intelligence (R-04, R-05)
 
-To be completed.
+| Requirement | Where |
+|-------------|-------|
+| MISP keys and Shodan key only as ciphertext | `secrets/intel.enc.yaml` (made with `sops edit`), decrypted by `make secrets` |
+| Feed lifecycle: trust, warninglists, ageing, dedup, atomic write | `scripts/misp_pull.py` (`make intel`), `tests/test_misp_pull.py` |
+| Enrichment that changes the outcome | `translate` in `pipelines/suricata.conf`, pipeline tests with `tests/samples/ioc_ip_test.yml` |
+| What Shodan already sees on my own IP | `scripts/exposure_check.py` (`make exposure`), `tests/test_exposure_check.py` |
+| MISP versions, feed and date | `docs/misp-setup.md` |
+
+Choices beyond the lab text:
+
+- `make up` creates an empty lookup when none exists, so Logstash starts before the first
+  MISP pull instead of failing on `dictionary_path`.
+- Two extra tests run `misp_pull.main()` against a stand-in for PyMISP: the lookup is
+  written atomically, and an empty feed keeps the previous lookup instead of wiping it.
+- The index template maps `threat.indicator.matched` as a keyword and `event.risk_score`
+  as a float, so both can be filtered and aggregated in Dashboards.
+
+Result on the stack, with the documentation address `203.0.113.66` as the indicator: the
+bad record carries `threat_match`, `threat.indicator.matched` and a risk score of 80; the
+clean record has no `threat` field and no tag. On the synthetic day the enrichment flags
+exactly the two hosts that talk to that address.
+
+The Shodan target is my own VPS, which I am authorised to assess. Its address lives only in
+`secrets/intel.enc.yaml`, and snapshots in `exposure/` are git-ignored.

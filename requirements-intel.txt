@@ -1,0 +1,4 @@
+# Intelligence clients (Lab 6). They run on my machine only, so they stay out of the
+# CI dependencies; the tests import them lazily. Pinned exactly (R-08).
+pymisp==3.0.0
+shodan==1.31.0

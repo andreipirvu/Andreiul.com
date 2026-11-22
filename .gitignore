@@ -39,3 +39,7 @@ __pycache__/
 
 # Replay input for the local stack (Lab 5), never committed
 data/
+
+# Lab 6: live indicators and Shodan snapshots of my own IP (personal data), never committed
+enrich/
+exposure/

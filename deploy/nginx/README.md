@@ -57,8 +57,10 @@ Deschide apoi fiecare pagină în browser cu DevTools → Console deschis. Un me
 
 ## Actualizarea fișierelor site-ului
 
+`<server>` e adresa VPS-ului. Ține-o într-un alias din `~/.ssh/config`, nu în repo.
+
 ```bash
-scp site/index.html site/main.js site/styles.css root@184.174.33.216:/tmp/   # din Git Bash
+scp site/index.html site/main.js site/styles.css root@<server>:/tmp/   # din Git Bash
 # pe server:
 mkdir -p /root/site-backup && cp /var/www/andreiul.com/{index.html,main.js,styles.css} /root/site-backup/
 cp /tmp/index.html /tmp/main.js /tmp/styles.css /var/www/andreiul.com/

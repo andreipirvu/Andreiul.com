@@ -51,5 +51,6 @@ Windows setup: [`docs/setup-windows.md`](docs/setup-windows.md).
 | 3 | Infrastructure as code, SOPS secrets, lab PKI | `compose.yaml`, `Makefile`, `nginx/`, `scripts/init-secrets.sh` |
 | 4 | CI/CD validation and supply chain | `.github/`, `nginx/Dockerfile`, `tests/`, `requirements-*.txt` |
 | 5 | Detection as code | `pipelines/`, `detections/`, `config/opensearch/`, `tests/`, `scripts/make_telemetry.py` |
+| 6 | Threat intelligence | `scripts/misp_pull.py`, `scripts/exposure_check.py`, `docs/misp-setup.md` |
 
 Project document: [`docs/project.md`](docs/project.md).
