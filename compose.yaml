@@ -1,0 +1,51 @@
+# Lab 3 stack: single-node OpenSearch, OpenSearch Dashboards and an nginx TLS front door.
+# Runs on my laptop (Docker / WSL2), never on the production server.
+#
+# - Every image is pinned by digest; the tag is kept in the comment (Lab 3, R-08).
+# - Every host port comes from .env and is bound to 127.0.0.1 only.
+# - The admin password reaches the container from .env.secrets, which `make up`
+#   decrypts from secrets/opensearch.enc.yaml and `make down` deletes (R-02).
+
+services:
+  opensearch:
+    image: opensearchproject/opensearch@sha256:72fe2fc84be8295906b8efca020b46c58ed45c8da60cd9b8b49e1991e38e89a4 # 2.19.1
+    environment:
+      - discovery.type=single-node
+      - OPENSEARCH_JAVA_OPTS=-Xms1g -Xmx1g
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OPENSEARCH_INITIAL_ADMIN_PASSWORD:?run make up, which decrypts the admin password}
+    ulimits:
+      nofile: { soft: 65536, hard: 65536 }
+    volumes:
+      - opensearch-data:/usr/share/opensearch/data
+    ports:
+      - "127.0.0.1:${OPENSEARCH_PORT}:9200"
+    healthcheck:
+      # 401 means the REST API is up and the security plugin answers; no password needed.
+      test: ["CMD-SHELL", "curl -sk -o /dev/null -w '%{http_code}' https://localhost:9200 | grep -q 401"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
+  opensearch-dashboards:
+    image: opensearchproject/opensearch-dashboards@sha256:70fb0a6563f204f391c444329287ce7ac50dbb7b99a43307c047de1fcfb9c658 # 2.19.1
+    environment:
+      OPENSEARCH_HOSTS: '["https://opensearch:9200"]'
+    ports:
+      - "127.0.0.1:${DASHBOARDS_PORT}:5601"
+    depends_on:
+      opensearch:
+        condition: service_healthy
+
+  frontdoor:
+    image: nginx@sha256:8c950211a641ec5b23f265450517001f6bcca533666120ebe36cb4cff3d00a55 # 1.30.7-alpine-slim
+    ports:
+      - "127.0.0.1:${HTTPS_PORT}:443"
+    volumes:
+      - ./nginx/frontdoor.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./certs/frontdoor.crt:/etc/nginx/certs/frontdoor.crt:ro
+      - ./certs/frontdoor.key:/etc/nginx/certs/frontdoor.key:ro
+    depends_on:
+      - opensearch-dashboards
+
+volumes:
+  opensearch-data:

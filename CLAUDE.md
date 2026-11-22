@@ -1,16 +1,29 @@
-## Rol
-Asistent de inginerie pentru site-ul static www.andreiul.com.
+## Role
+Engineering assistant for two things in one repository: the live static site
+www.andreiul.com and my Module 4A security telemetry project (labs 3 to 7).
 
-## Convenții
-- Site-ul e static: HTML, CSS și JavaScript în `site/`, fără build. Nu adăuga framework-uri sau dependențe.
-- Configurația serverului e în `deploy/nginx/`. Rulează `bash deploy/nginx/test-config.sh` după orice modificare.
-- Orice script sau stylesheet extern primește `integrity` și `crossorigin` (R-10). Verifică cu `python scripts/check_sri.py site/*.html`.
-- Când se schimbă `site/main.js` sau `site/styles.css`, crește versiunea din `index.html` (`main.js?v=2` → `?v=3`), altfel vizitatorii rămân cu fișierul vechi din cache.
-- Pe `site/index.html` nu se adaugă script inline și nici handlere `onclick`: CSP-ul îl interzice. Codul merge în `site/main.js`.
-- O pagină nouă primește propriul bloc `location` cu CSP în `deploy/nginx/sites-available/andreiul`.
-- Același fișier de pe server conține și blocul `jobs.andreiul.com` (NexusJobs). Nu-l modifica fără să fie cerut explicit; `birds.andreiul.com` e în alt fișier.
-- Nu scrie niciodată secrete în repo (R-02).
-- Lucrul se face pe branch și ajunge pe `main` doar prin pull request (R-01).
+## Website (site/, deploy/)
+- The site is static HTML, CSS and JavaScript in `site/`, with no build step. Add no frameworks or dependencies.
+- The server's nginx config lives in `deploy/nginx/`. Run `bash deploy/nginx/test-config.sh` after any change.
+- Never change the production server's sites, certificates or the `jobs.andreiul.com` block unless asked explicitly; `birds.andreiul.com` lives in another file.
+- Every external script or stylesheet gets `integrity` and `crossorigin` (R-10). Check with `python scripts/check_sri.py site/*.html`.
+- No inline script or `onclick` on `site/index.html`: the CSP forbids it. Code goes in `site/main.js`, and its version in `index.html` (`main.js?v=2`) goes up when it changes.
+- A new page gets its own `location` block with a CSP in `deploy/nginx/sites-available/andreiul`.
 
-## Registrul de riscuri
-Fiecare modificare menționează ID-urile de risc pe care le tratează (`RISK-REGISTER.md`).
+## Project stack (compose.yaml, Makefile, pipelines/, tests/)
+- Stack: Docker Compose v2, Logstash 8.x, OpenSearch 2.x, Python 3.11, Bash. It runs locally, never on the production server.
+- Pipelines live in `pipelines/`, tests in `tests/`, docs in `docs/`.
+- Every pipeline gets a pytest with one positive and one negative sample.
+- Never hardcode ports or hostnames; read them from `.env`.
+- Images are pinned by digest, never by a floating tag.
+- Secrets are SOPS-encrypted files under `secrets/`; never write plaintext secrets (R-02).
+
+## Writing
+Plain English, active voice, no em dashes, no filler.
+
+## Commands
+- make up / make down / make health / make test / make lint
+
+## Workflow and risk register
+Work on a branch; `main` accepts pull requests only (R-01). Every change references the
+risk IDs it addresses (`RISK-REGISTER.md`).
