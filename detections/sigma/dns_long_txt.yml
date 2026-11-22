@@ -18,7 +18,10 @@ detection:
     dns.answers.type: TXT
   long_data:
     dns.answers.data|re: '.{200,}'
-  condition: answer and long_data
+  dkim:
+    dns.question.name|contains: '._domainkey.'
+  condition: answer and long_data and not dkim
 falsepositives:
   - Domain-verification and long SPF TXT records on mail and SaaS domains
+  - DKIM public keys, excluded by the dkim selection after the negative sample caught them
 level: medium

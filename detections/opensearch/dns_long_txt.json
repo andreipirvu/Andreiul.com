@@ -1,1 +1,1 @@
-{"query": {"bool": {"must": [{"query_string": {"query": "(dns.type:answer AND dns.answers.type:TXT) AND dns.answers.data:/.{200,}/", "analyze_wildcard": true}}]}}}
+{"query": {"bool": {"must": [{"query_string": {"query": "(dns.type:answer AND dns.answers.type:TXT) AND dns.answers.data:/.{200,}/ AND (NOT dns.question.name:*._domainkey.*)", "analyze_wildcard": true}}]}}}
