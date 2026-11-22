@@ -41,10 +41,11 @@ template:
 	  echo "$$out" | grep -q '"acknowledged":true' && { echo "template: $$out"; exit 0; }; sleep 5; \
 	done; echo "template not applied: $$out"; exit 1
 
-# Feed the Lab 5 samples to Logstash (picked up within about 15 seconds).
+# Feed the Lab 5 samples (DNS rule and my own HTTP rule) to Logstash; picked up within ~15 s.
 replay:
 	mkdir -p data
-	cp tests/samples/eve_dns_txt_positive.json tests/samples/eve_dns_txt_negative.json data/
+	cp tests/samples/eve_dns_txt_positive.json tests/samples/eve_dns_txt_negative.json \
+	   tests/samples/eve_http_ie_post_positive.json tests/samples/eve_http_ie_post_negative.json data/
 
 # Count the hits of a converted rule: make hits RULE=dns_long_txt
 RULE ?= dns_long_txt
