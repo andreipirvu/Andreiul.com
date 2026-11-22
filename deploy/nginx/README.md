@@ -5,14 +5,14 @@ Serverul (Contabo, Ubuntu 22.04, nginx 1.18) găzduiește trei site-uri:
 | Site | Fișier pe server | Atins de acest folder? |
 |------|------------------|------------------------|
 | `andreiul.com`, `www.andreiul.com` | `/etc/nginx/sites-available/andreiul` (primul bloc) | Da: headere de securitate și CSP |
-| `jobs.andreiul.com` (NexusJobs) | același fișier, al doilea bloc | Nu: copiat neschimbat |
+| `jobs.andreiul.com` | același fișier, blocurile de după andreiul.com | Nu: nu e gestionat în acest repo |
 | `birds.andreiul.com` | `/etc/nginx/sites-available/birds` | Nu |
 
 | Fișier din repo | Unde merge pe server | Ce face |
 |-----------------|---------------------|---------|
 | `conf.d/security.conf` | `/etc/nginx/conf.d/security.conf` | `server_tokens off` pentru toate site-urile (R-05). E deja instalat. |
 | `snippets/security-headers.conf` | `/etc/nginx/snippets/security-headers.conf` | HSTS, nosniff, X-Frame-Options etc. (R-11) |
-| `sites-available/andreiul` | `/etc/nginx/sites-available/andreiul` | Fișierul complet, cu CSP pe pagină și blocarea `/nexusjobs/` (R-11, R-13) |
+| `sites-available/andreiul` | blocurile andreiul.com din `/etc/nginx/sites-available/andreiul` | CSP pe pagină și blocarea `/nexusjobs/` (R-11, R-13) |
 
 ## Testare înainte de deploy
 
@@ -21,19 +21,25 @@ Serverul (Contabo, Ubuntu 22.04, nginx 1.18) găzduiește trei site-uri:
 
 ## Instalare (pe server, ca root)
 
-Din folderul repo-ului clonat pe server, sau după ce copiezi cele două fișiere cu `scp`:
+**Nu copia `sites-available/andreiul` peste fișierul de pe server.** Pe server, fișierul
+conține și blocurile `jobs.andreiul.com`, care nu sunt în acest repo; o copiere completă
+ar opri site-ul jobs. Până când blocurile jobs sunt mutate într-un fișier separat pe
+server, se actualizează doar blocurile andreiul.com, de mână.
+
+Din folderul repo-ului clonat pe server, sau după ce copiezi fișierele cu `scp`:
 
 ```bash
 # 1. backup
 cp /etc/nginx/sites-available/andreiul /root/andreiul.nginx.$(date +%F-%H%M).bak
 
-# 2. verifică dacă fișierul de pe server s-a schimbat față de ce e în repo (afară de
-#    blocul andreiul.com). Diferențele așteptate sunt doar în primul bloc server.
+# 2. vezi ce diferă. Liniile jobs.andreiul.com apar ca lipsă din repo: e normal,
+#    rămân pe server neschimbate.
 diff /etc/nginx/sites-available/andreiul deploy/nginx/sites-available/andreiul
 
-# 3. instalare și test
+# 3. snippet-ul se poate copia întreg; în fișierul site-ului editezi doar
+#    blocurile andreiul.com, apoi testezi
 cp deploy/nginx/snippets/security-headers.conf /etc/nginx/snippets/
-cp deploy/nginx/sites-available/andreiul /etc/nginx/sites-available/andreiul
+nano /etc/nginx/sites-available/andreiul
 nginx -t && systemctl reload nginx
 ```
 

@@ -65,6 +65,11 @@ discloses nothing new, and no long-lived signing key exists to steal.
 **R-10 to R-13** protect the live site. Their controls were deployed and checked in the
 browser on 2026-11-11.
 
+R-13 covers andreiul.com only. Another site on the same server, `jobs.andreiul.com`, is
+managed outside this repository. Its known issues stay open until it is reworked: uploaded
+files are served from its own origin without security headers, and the application sits
+inside the andreiul.com webroot (which is why `/nexusjobs/` is blocked here).
+
 ## Renumbering (2026-11-22)
 
 The register was renumbered to follow the course IDs. Commits and pull requests made

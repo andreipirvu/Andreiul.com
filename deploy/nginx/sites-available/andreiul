@@ -1,17 +1,19 @@
 # /etc/nginx/sites-available/andreiul  (enabled via sites-enabled/andreiul)
 #
-# Mirrors the live server file as of 2026-11-11, with security changes only in the
-# andreiul.com / www block (R-11, R-13). The jobs.andreiul.com blocks and the
-# certbot-managed lines are unchanged. birds.andreiul.com lives in its own file and is
-# not touched. server_tokens is set once, globally, in conf.d/security.conf.
+# The andreiul.com / www blocks of the live server file, with security changes
+# (R-11, R-13); the certbot-managed lines are unchanged. Only andreiul.com is managed
+# here. On the server this file also holds the blocks of another site (jobs), which are
+# not in this repository: never copy this file over the server's (see README.md).
+# birds.andreiul.com lives in its own file. server_tokens is set once, globally, in
+# conf.d/security.conf.
 
 server {
     server_name andreiul.com www.andreiul.com;
     root /var/www/andreiul.com;
     index index.html;
 
-    # NexusJobs sits inside this webroot. jobs.andreiul.com serves it through its own
-    # root and alias, so nothing under /nexusjobs/ may be served from here (R-13).
+    # Another application's files sit inside this webroot on the server, including its
+    # .env. Nothing under /nexusjobs/ may be served from here (R-13).
     location ^~ /nexusjobs/ { return 404; }
 
     # No dotfiles (.git, .env, editor backups), except /.well-known/.
@@ -54,43 +56,7 @@ server {
     ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
 }
 
-# ── jobs.andreiul.com (NexusJobs): unchanged ─────────────────────────────────────
-server {
-    server_name jobs.andreiul.com;
-    root /var/www/andreiul.com/nexusjobs/frontend/dist;
-    index index.html;
-
-    location / {
-        try_files $uri $uri/ /index.html;
-    }
-
-    location /api/ {
-        proxy_pass http://localhost:5000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_cache_bypass $http_upgrade;
-        proxy_read_timeout 60s;
-    }
-
-    location /uploads/ {
-        alias /var/www/andreiul.com/nexusjobs/backend/uploads/;
-        expires 30d;
-    }
-
-    client_max_body_size 10M;
-
-    listen 443 ssl; # managed by Certbot
-    ssl_certificate /etc/letsencrypt/live/andreiul.com/fullchain.pem; # managed by Certbot
-    ssl_certificate_key /etc/letsencrypt/live/andreiul.com/privkey.pem; # managed by Certbot
-    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
-    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
-}
-
-# ── HTTP → HTTPS redirects (certbot): unchanged ──────────────────────────────────
+# ── HTTP → HTTPS redirect (certbot): unchanged ──────────────────────────────────
 server {
     if ($host = www.andreiul.com) {
         return 301 https://$host$request_uri;
@@ -102,15 +68,5 @@ server {
 
     listen 80;
     server_name andreiul.com www.andreiul.com;
-    return 404; # managed by Certbot
-}
-
-server {
-    if ($host = jobs.andreiul.com) {
-        return 301 https://$host$request_uri;
-    } # managed by Certbot
-
-    listen 80;
-    server_name jobs.andreiul.com;
     return 404; # managed by Certbot
 }

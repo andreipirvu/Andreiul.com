@@ -188,5 +188,9 @@ bad record carries `threat_match`, `threat.indicator.matched` and a risk score o
 clean record has no `threat` field and no tag. On the synthetic day the enrichment flags
 exactly the two hosts that talk to that address.
 
-The Shodan target is my own VPS, which I am authorised to assess. Its address lives only in
-`secrets/intel.enc.yaml`, and snapshots in `exposure/` are git-ignored.
+The Shodan target is my own VPS, which I am authorised to assess. Its address is not
+personal data in the sense of the lab: it is the public DNS A record of andreiul.com, which
+anyone can resolve, and it appears in the history of `deploy/nginx/README.md` (removed
+from the file on 2026-11-22; the history was kept, not rewritten). The scripts still read
+it only from `secrets/intel.enc.yaml`, evidence shows it as `<redacted>`, and snapshots
+in `exposure/` are git-ignored.
