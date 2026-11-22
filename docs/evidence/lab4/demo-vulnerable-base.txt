@@ -1,0 +1,11 @@
+# demo: vulnerable base image must fail scan (R-14) (#9) on 2026-11-22
+scan	fail	24s	https://github.com/andreipirvu/Andreiul.com/actions/runs/45067685631/job/137347545843	
+release (signed image, SBOM)	skipping	0	https://github.com/andreipirvu/Andreiul.com/actions/runs/45067685631/job/137347684338	
+lint	pass	23s	https://github.com/andreipirvu/Andreiul.com/actions/runs/45067685631/job/137347420050	
+nginx config test	pass	15s	https://github.com/andreipirvu/Andreiul.com/actions/runs/45067685631/job/137347419924	
+secret scan (gitleaks, full history)	pass	8s	https://github.com/andreipirvu/Andreiul.com/actions/runs/45067685631/job/137347420122	
+site checks (SRI)	pass	5s	https://github.com/andreipirvu/Andreiul.com/actions/runs/45067685631/job/137347420210	
+test	pass	10s	https://github.com/andreipirvu/Andreiul.com/actions/runs/45067685631/job/137347420226	
+workflow lint (zizmor)	pass	7s	https://github.com/andreipirvu/Andreiul.com/actions/runs/45067685631/job/137347420116	
+
+completed	failure	demo: vulnerable base image must fail scan (R-14)	ci	demo/vulnerable-base	pull_request	45067685631	54s	2026-11-22T20:39:45Z
